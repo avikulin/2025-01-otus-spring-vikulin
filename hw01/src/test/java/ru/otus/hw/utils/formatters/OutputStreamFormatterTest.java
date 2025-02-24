@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.domain.Question;
@@ -23,19 +24,17 @@ class OutputStreamFormatterTest {
     private static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
     @Mock
-    private static IOService mockIoService;
+    private IOService mockIoService;
 
     @Mock
-    private static QuestionValidator mockQuestionValidator;
+    private QuestionValidator mockQuestionValidator;
 
-    //@InjectMocks
-    private static OutputStreamFormatter outputStreamFormatter;
+    @InjectMocks
+    private OutputStreamFormatter outputStreamFormatter;
 
     @BeforeEach
     void setUpTest() {
         doNothing().when(mockQuestionValidator).validateQuestion(any(Question.class));
-        // @InjectMocks не сработал - не понятно почему.
-        outputStreamFormatter = new OutputStreamFormatter(mockIoService, mockQuestionValidator);
         lenient().doNothing().when(mockIoService).printLine(anyString()); // вызывается не всегда
         doNothing().when(mockIoService)
                 .printFormattedLine(anyString(), anyString());
