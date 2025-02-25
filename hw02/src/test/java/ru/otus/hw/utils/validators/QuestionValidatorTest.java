@@ -1,11 +1,13 @@
 package ru.otus.hw.utils.validators;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
-import ru.otus.hw.utils.QuestionValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +17,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class QuestionValidatorTest {
 
     private static final String MSG_QUESTION_IS_NULL = "Reference to question must be non-null";
+    private static QuestionValidator validator;
+
+    @BeforeAll
+    public static void globalSetup(){
+        ApplicationContext context = new ClassPathXmlApplicationContext("io-tests/io-test-spring-context.xml");
+        validator = (QuestionValidator) context.getBean("questionValidator");
+    }
 
     @Test
     @DisplayName("Null-referenced question")
     void validateNullReferencedQuestion() {
         Exception ex = assertThrows(
                 NullPointerException.class,
-                ()-> QuestionValidator.validateQuestion(null)
+                ()-> validator.validateQuestion(null)
         );
         assertEquals(MSG_QUESTION_IS_NULL, ex.getMessage());
     }
@@ -33,7 +42,7 @@ class QuestionValidatorTest {
 
         assertThrows(
                 QuestionStateException.class,
-                ()-> QuestionValidator.validateQuestion(testQuestion)
+                ()-> validator.validateQuestion(testQuestion)
         );
     }
 
@@ -49,7 +58,7 @@ class QuestionValidatorTest {
 
         assertThrows(
                 QuestionStateException.class,
-                ()-> QuestionValidator.validateQuestion(testQuestion)
+                ()-> validator.validateQuestion(testQuestion)
         );
     }
 
@@ -64,7 +73,7 @@ class QuestionValidatorTest {
 
         assertThrows(
                 QuestionStateException.class,
-                ()-> QuestionValidator.validateQuestion(testQuestion)
+                ()-> validator.validateQuestion(testQuestion)
         );
     }
 
@@ -80,7 +89,7 @@ class QuestionValidatorTest {
                 )
         );
 
-        assertDoesNotThrow(()-> QuestionValidator.validateQuestion(testQuestion));
+        assertDoesNotThrow(()-> validator.validateQuestion(testQuestion));
     }
 
     @Test
@@ -94,7 +103,7 @@ class QuestionValidatorTest {
         );
         assertThrows(
                 QuestionStateException.class,
-                ()-> QuestionValidator.validateQuestion(testQuestion)
+                ()-> validator.validateQuestion(testQuestion)
         );
     }
 
@@ -108,7 +117,7 @@ class QuestionValidatorTest {
         var testQuestion = new Question("Do I have an two answers?",answers);
         assertThrows(
                 QuestionStateException.class,
-                ()-> QuestionValidator.validateQuestion(testQuestion)
+                ()-> validator.validateQuestion(testQuestion)
         );
     }
 
@@ -127,7 +136,7 @@ class QuestionValidatorTest {
                 )
         );
 
-        assertDoesNotThrow(()-> QuestionValidator.validateQuestion(testQuestion));
+        assertDoesNotThrow(()-> validator.validateQuestion(testQuestion));
     }
 
     @Test
@@ -144,6 +153,6 @@ class QuestionValidatorTest {
                 )
         );
 
-        assertThrows(QuestionStateException.class, ()-> QuestionValidator.validateQuestion(testQuestion));
+        assertThrows(QuestionStateException.class, ()-> validator.validateQuestion(testQuestion));
     }
 }

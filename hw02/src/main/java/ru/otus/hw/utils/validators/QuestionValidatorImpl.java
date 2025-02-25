@@ -1,5 +1,7 @@
-package ru.otus.hw.utils;
+package ru.otus.hw.utils.validators;
 
+import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
@@ -7,7 +9,9 @@ import ru.otus.hw.exceptions.QuestionStateException;
 import java.util.List;
 import java.util.Objects;
 
-public class QuestionValidator {
+@Component
+@NoArgsConstructor
+public class QuestionValidatorImpl implements QuestionValidator {
 
     private static final String MSG_MAIN_TEMPLATE = "Object [%s] has validation error: %s";
 
@@ -19,14 +23,15 @@ public class QuestionValidator {
 
     private static final String MSG_QUESTION_WITH_NO_CORRECT_ANSWER = "No correct answer detected";
 
-    public static void validateQuestion(Question obj) {
+    @Override
+    public void validateQuestion(Question obj) {
         Objects.requireNonNull(obj, "Reference to question must be non-null");
         checkQuestionPresent(obj);
         checkAnswersPresent(obj);
         checkAnswersHaveValue(obj);
     }
 
-    private static void checkQuestionPresent(Question question) {
+    private void checkQuestionPresent(Question question) {
         var questionText = question.text();
         var checkQuestionNotPresent = (questionText == null || questionText.isBlank());
         if (checkQuestionNotPresent) {
@@ -35,7 +40,7 @@ public class QuestionValidator {
         }
     }
 
-    private static void checkAnswersPresent(Question question) {
+    private void checkAnswersPresent(Question question) {
         List<Answer> answers = question.answers();
         var checkAnswersNotPresent = (answers == null || answers.isEmpty());
         if (checkAnswersNotPresent) {
@@ -44,7 +49,7 @@ public class QuestionValidator {
         }
     }
 
-    private static void checkAnswersHaveValue(Question question) {
+    private void checkAnswersHaveValue(Question question) {
         List<Answer> answers = question.answers();
         if (answers.isEmpty()) {
             return;
@@ -68,7 +73,7 @@ public class QuestionValidator {
         }
     }
 
-    private  static String formatErrMsg(Question question, String errMsg) {
+    private String formatErrMsg(Question question, String errMsg) {
         return String.format(MSG_MAIN_TEMPLATE, question, errMsg);
     }
 }

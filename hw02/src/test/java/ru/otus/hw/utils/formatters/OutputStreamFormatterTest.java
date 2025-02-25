@@ -1,112 +1,73 @@
 package ru.otus.hw.utils.formatters;
 
-import org.junit.jupiter.api.*;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.otus.hw.domain.Answer;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.service.io.IOService;
-import ru.otus.hw.service.ioservice.stub.FakeStdOut;
-import ru.otus.hw.utils.OutputStreamFormatter;
+import ru.otus.hw.utils.validators.QuestionValidator;
 
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class OutputStreamFormatterTest {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
-    private static final String MSG_QUESTION_PREFIX = "Question: ";
+    private static final String MSG_QUESTION_TEMPLATE = "Question: %s";
+    private static final String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #%d : %s";
+    private static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
-    private static final String MSG_ANSWER_PREFIX = "  ⮕ Answer #";
+    @Mock
+    private IOService mockIoService;
 
-    private static final String MSG_IO_SERVICE_IS_NULL = "Reference to IOService must be non-null";
+    @Mock
+    private QuestionValidator mockQuestionValidator;
 
-    private static final String MSG_QUESTION_IS_NULL = "Reference to question must be non-null";
-
-    private static final String QUESTION_1 = "Do I have an exactly one answer?";
-
-    private static final String QUESTION_1_ANSWER_1 = "Here is the answer";
-
-    private static final String QUESTION_2 = "X-files main statement";
-
-    private static final String QUESTION_2_ANSWER_1 = "The Tommyknockers exists";
-
-    private static final String QUESTION_2_ANSWER_2 = "The truth is out there";
-
-    private static Question questionWithOneAnswer;
-
-    private static Question questionWithTwoAnswers;
-
-    private static IOService ioService;
-    private static FakeStdOut fakeConsole;
-
-    @BeforeAll
-    static void globalSetup() {
-        ApplicationContext context = new ClassPathXmlApplicationContext("io-tests/io-test-spring-context.xml");
-        ioService = context.getBean(IOService.class);
-        fakeConsole = context.getBean(FakeStdOut.class);
-        questionWithOneAnswer = new Question(QUESTION_1, List.of(new Answer(QUESTION_1_ANSWER_1,true)));
-        questionWithTwoAnswers = new Question(QUESTION_2, List.of(new Answer(QUESTION_2_ANSWER_1,false),
-                                                                  new Answer(QUESTION_2_ANSWER_2,true)));
-    }
+    @InjectMocks
+    private OutputStreamFormatter outputStreamFormatter;
 
     @BeforeEach
-    void setUp() {
-        fakeConsole.reset();
+    void setUpTest() {
+        doNothing().when(mockQuestionValidator).validateQuestion(any(Question.class));
+        lenient().doNothing().when(mockIoService).printLine(anyString()); // вызывается не всегда
+        doNothing().when(mockIoService)
+                .printFormattedLine(anyString(), anyString());
     }
 
-    @AfterAll
-    static void tearDown() {
-        fakeConsole.close();
+    @AfterEach
+    void tierDown(){
+        reset(mockQuestionValidator, mockIoService);
     }
 
-    @Test
-    @DisplayName("Null-referenced question")
-    void questionToStreamNullReferencedQuestion() {
-        Exception ex = assertThrows(
-                NullPointerException.class,
-                ()-> OutputStreamFormatter.questionToStream(null, ioService)
-        );
-        assertEquals(MSG_QUESTION_IS_NULL, ex.getMessage());
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(OutputStreamFormatterArgsProvider.class)
+    void questionToStreamOneAnswer(String testName, Question question) {
+        outputStreamFormatter.questionToStream(question);
+        // проверяем, что только один раз вызывается валидатор
+        verify(mockQuestionValidator, times(1)).validateQuestion(question);
+
+        // проверяем взаимодействие с IO-сервисов
+        verify(mockIoService, times(1))
+            .printFormattedLine(MSG_QUESTION_TEMPLATE, question.text());
+
+        int answerIdx = 0;
+        for (var answer : question.answers()) {
+            answerIdx++;
+            if (StringUtils.isEmpty(answer.text())) {
+                verify(mockIoService, times(1))
+                    .printLine(eq(MSG_FREE_USER_ANSWER_TEMPLATE));
+            } else {
+                verify(mockIoService, times(1))
+                    .printFormattedLine(eq(MSG_FIXED_ANSWER_TEMPLATE), eq(answerIdx), eq(answer.text()));
+            }
+        }
     }
 
-    @Test
-    @DisplayName("Null-referenced IO-service")
-    void questionToStreamNullReferencedStream() {
-        Exception ex = assertThrows(
-                NullPointerException.class,
-                ()-> OutputStreamFormatter.questionToStream(questionWithOneAnswer, null)
-        );
-        assertEquals(MSG_IO_SERVICE_IS_NULL, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Question with one correct answer formatting")
-    void questionToStreamOneAnswer() {
-        var expectedResult = String.format("%s%s\n%s1 : %s\n", MSG_QUESTION_PREFIX,
-                                                               QUESTION_1,
-                                                               MSG_ANSWER_PREFIX,
-                                                               QUESTION_1_ANSWER_1);
-
-        OutputStreamFormatter.questionToStream(questionWithOneAnswer, ioService);
-        assertEquals(expectedResult, fakeConsole.getContent());
-    }
-
-    @Test
-    @DisplayName("Question with two correct answers formatting")
-    void questionToStreamTwoCorrectAnswers() {
-
-
-        var expectedResult = String.format("%s%s\n%s1 : %s\n%s2 : %s\n", MSG_QUESTION_PREFIX,
-                                                                         QUESTION_2,
-                                                                         MSG_ANSWER_PREFIX,
-                                                                         QUESTION_2_ANSWER_1,
-                                                                         MSG_ANSWER_PREFIX,
-                                                                         QUESTION_2_ANSWER_2);
-
-        OutputStreamFormatter.questionToStream(questionWithTwoAnswers, ioService);
-        assertEquals(expectedResult, fakeConsole.getContent());
-    }
 }

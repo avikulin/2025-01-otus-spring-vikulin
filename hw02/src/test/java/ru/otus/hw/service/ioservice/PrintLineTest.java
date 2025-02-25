@@ -1,51 +1,124 @@
 package ru.otus.hw.service.ioservice;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvFileSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.otus.hw.service.io.IOService;
-import ru.otus.hw.service.ioservice.stub.FakeStdErr;
 import ru.otus.hw.service.ioservice.stub.FakeStdOut;
-import ru.otus.hw.service.ioservice.config.StubCfgInitializer;
-import ru.otus.hw.service.ioservice.utils.Normalizer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ExtendWith({SpringExtension.class})
-@ContextConfiguration(classes = {StubCfgInitializer.class})
+@Isolated
+@Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock(value = "FAKE_CONSOLE", mode = ResourceAccessMode.READ_WRITE)
 class PrintLineTest {
-    @Qualifier("getMockedIO")
-    @Autowired
-    private IOService ioService;
+    private static IOService ioService;
+    private static FakeStdOut fakeConsole;
 
-    @Autowired
-    private FakeStdOut fakeStdOut;
-
-    @Autowired
-    private FakeStdErr fakeStdErr;
-
-    @BeforeEach
-    public void setupMocks(){
-        this.fakeStdOut.reset();
-        this.fakeStdErr.reset();
+    @BeforeAll
+    public static void init() {
+        ApplicationContext context = new ClassPathXmlApplicationContext("io-tests/io-test-spring-context.xml");
+        ioService = context.getBean(IOService.class);
+        fakeConsole = context.getBean(FakeStdOut.class);
     }
 
-    @ParameterizedTest(name = "{index}. {0}")
-    @CsvFileSource(resources = "/formatter-tests/test-data-source.csv",delimiter = ';',numLinesToSkip = 1)
-    void printFormattedContentTest(String nameOfTheTest, String valuePassed, String valueExpected){
-        assertNotNull(this.ioService);
-        assertNotNull(this.fakeStdOut);
-        assertNotNull(this.fakeStdErr);
-        this.ioService.printLine(valuePassed);
-        this.fakeStdOut.flush();
-        this.fakeStdErr.flush();
-        assertEquals(Normalizer.newLine(valueExpected), this.fakeStdOut.getContent());
-        assertEquals("", this.fakeStdErr.getContent());
+    @BeforeEach
+    void setUp() {
+        fakeConsole.reset();
+    }
+
+
+    @AfterAll
+    static void tearDown() {
+        fakeConsole.close();
+    }
+
+    @Test
+    @DisplayName("No extra characters in output")
+    void printEmptyLine() {
+        ioService.printLine("");
+        fakeConsole.flush();
+        assertEquals(System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Char-to-char equality between input & output")
+    void printRegularString(){
+        ioService.printLine("AaBbCc01233210");
+        fakeConsole.flush();
+        assertEquals("AaBbCc01233210"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Non-trailing left spaces of input string")
+    void printSpacedString1(){
+        ioService.printLine("   AaBbCc01233210");
+        fakeConsole.flush();
+        assertEquals("   AaBbCc01233210"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Non-trailing right spaces")
+    void printSpacedString2(){
+        ioService.printLine("AaBbCc01233210   ");
+        fakeConsole.flush();
+        assertEquals("AaBbCc01233210   "+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Keeping spaces inside input string")
+    void printSpacedString3(){
+        ioService.printLine("AaBbCc   01233210");
+        fakeConsole.flush();
+        assertEquals("AaBbCc   01233210"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output of new-line")
+    void printNonAlphabeticCharacter1(){
+        ioService.printLine("\n\n\nAaBbCc01233210\n\n\n");
+        fakeConsole.flush();
+        assertEquals("\n\n\nAaBbCc01233210\n\n\n"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output of new-line between other letters")
+    void printNonAlphabeticCharacter2(){
+        ioService.printLine("AaBbCc\n\n\n01233210");
+        fakeConsole.flush();
+        assertEquals("AaBbCc\n\n\n01233210"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output of tabulation")
+    void printNonAlphabeticCharacter3(){
+        ioService.printLine("\tAaBbCc01233210\t");
+        fakeConsole.flush();
+        assertEquals("\tAaBbCc01233210\t"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output of tabulation between other letters")
+    void printNonAlphabeticCharacter4(){
+        ioService.printLine("AaBbCc\t\t\t01233210");
+        fakeConsole.flush();
+        assertEquals("AaBbCc\t\t\t01233210"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output of non-letter & non-digit symbols")
+    void printNonAlphabeticCharacter5(){
+        ioService.printLine("()<>/.,?!#@%^&*{}[]|");
+        fakeConsole.flush();
+        assertEquals("()<>/.,?!#@%^&*{}[]|"+System.lineSeparator(), fakeConsole.getContent());
+    }
+
+    @Test
+    @DisplayName("Correct output on unicode letters")
+    void printUnicodeString(){
+        ioService.printLine("← → ↔ ↑ ↓ ↕ ↖ ↗ ↘ ↙ ⤡ ⤢");
+        fakeConsole.flush();
+        assertEquals("← → ↔ ↑ ↓ ↕ ↖ ↗ ↘ ↙ ⤡ ⤢"+System.lineSeparator(), fakeConsole.getContent());
     }
 }

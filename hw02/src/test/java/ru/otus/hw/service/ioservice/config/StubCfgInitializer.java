@@ -12,7 +12,7 @@ import ru.otus.hw.service.ioservice.stub.FakeStdOut;
 
 
 @Configuration
-@ComponentScan(basePackages = {"ru.otus.hw.service.ioservice.stub", "ru.otus.hw.service.io"})
+@ComponentScan(basePackages = {"ru.otus.hw.service.ioservice.stub"})
 public class StubCfgInitializer {
     @Autowired
     private FakeStdOut fakeStdOut;

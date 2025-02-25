@@ -1,4 +1,4 @@
-package ru.otus.hw.utils;
+package ru.otus.hw.utils.validators;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;

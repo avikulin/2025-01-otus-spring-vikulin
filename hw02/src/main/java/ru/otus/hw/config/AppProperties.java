@@ -6,12 +6,18 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 @Data
-@Component
+@Component("appProperties")
 @PropertySource("classpath:application.properties")
-public class AppProperties implements TestConfig, TestFileNameProvider {
-    @Value("${test.rightAnswersCountToPass}")
-    private int rightAnswersCountToPass;
-
+public class AppProperties implements TestConfig, TestFileReaderConfig {
     @Value("${test.fileName}")
     private String testFileName;
+
+    @Value("${opencsv.settings.column-separation-symbol}")
+    private char columnSeparationSymbol;
+
+    @Value("${opencsv.settings.skip-first-rows}")
+    private int numberOfRowsSkipped;
+
+    @Value("${test.rightAnswersCountToPass}")
+    private int rightAnswersCountToPass;
 }
