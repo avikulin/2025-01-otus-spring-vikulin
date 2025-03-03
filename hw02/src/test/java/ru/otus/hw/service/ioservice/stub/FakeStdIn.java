@@ -1,30 +1,42 @@
 package ru.otus.hw.service.ioservice.stub;
 
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 
 @Component
-public class FakeStdIn {
-    private final byte[] content = new byte[1_000];
-    private final InputStream fakeStdin =  new ByteArrayInputStream(content);
+@Scope("singleton")
+public class FakeStdIn implements DisposableBean {
+    private static final int MAX_CONTENT_LENGTH = 1024;
+    private final byte[] content = new byte[MAX_CONTENT_LENGTH];
+    private final InputStream fakeStdin = new ByteArrayInputStream(this.content);
 
     public InputStream getInstance() {
         return this.fakeStdin;
     }
 
-    public String getContent() {
-        return Arrays.toString(this.content);
+    @SneakyThrows
+    public void writeContent(String content) {
+        Validate.notBlank(content);
+        try(var writer = new ByteArrayOutputStream()) {
+            writer.write(content.getBytes());
+            var data = writer.toByteArray();
+            System.arraycopy(data, 0, this.content, 0, data.length);
+        }
     }
 
+    @SneakyThrows
     public void reset(){
-        try {
-            this.fakeStdin.reset();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.fakeStdin.reset();
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        this.fakeStdin.close();
     }
 }

@@ -3,21 +3,23 @@ package ru.otus.hw.service.ioservice;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.service.io.IOService;
-import ru.otus.hw.service.ioservice.config.StubCfgInitializer;
+import ru.otus.hw.service.ioservice.config.IoStubsContextConfiguration;
 import ru.otus.hw.service.ioservice.stub.FakeStdOut;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DisplayName("Check output formatting behaviour")
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {StubCfgInitializer.class})
+@ContextConfiguration(classes = {IoStubsContextConfiguration.class})
+@TestPropertySource("classpath:/test-application.properties")
 public class PrintFormattedLineTest {
     @Autowired
+    @Qualifier("mockedIO")
     private IOService ioService;
 
     @Autowired
@@ -34,7 +36,7 @@ public class PrintFormattedLineTest {
     void printEmptyLine() {
         ioService.printFormattedLine("%s","");
         fakeConsole.flush();
-        assertEquals("\n",fakeConsole.getContent());
+        assertEquals(System.lineSeparator(),fakeConsole.getContent());
     }
 
     @Test

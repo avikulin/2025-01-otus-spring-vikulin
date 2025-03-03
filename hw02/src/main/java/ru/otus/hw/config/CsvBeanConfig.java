@@ -3,6 +3,7 @@ package ru.otus.hw.config;
 import com.opencsv.bean.ColumnPositionMappingStrategyBuilder;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +23,7 @@ public class CsvBeanConfig {
     private static final String MSG_TEMPLATE_RESOURCE_READ_ERROR = "Unreachable classpath resource: %s";
 
     @Autowired
-    public CsvBeanConfig(@Qualifier("appProperties") TestFileReaderConfig testFileReaderConfig) {
+    public CsvBeanConfig(TestFileReaderConfig testFileReaderConfig) {
         this.testFileReaderCfg = testFileReaderConfig;
     }
 
@@ -35,7 +36,7 @@ public class CsvBeanConfig {
         // защита от пустых строк в <questions.csv?>
         beanBuilder.withFilter(tokens -> tokens != null && (tokens.length > 1 || !tokens[0].isBlank()));
 
-        // принимаем во внимание, что в XML может быть указано 0 или -1,
+        // принимаем во внимание, что в конфигурационном файле может быть указано 0 или -1,
         // тогда данную опцию использовать не будем.
         if (this.testFileReaderCfg.getNumberOfRowsSkipped() > 0) {
             beanBuilder = beanBuilder.withSkipLines(this.testFileReaderCfg.getNumberOfRowsSkipped());

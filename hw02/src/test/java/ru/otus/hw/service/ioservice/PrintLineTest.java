@@ -1,37 +1,33 @@
 package ru.otus.hw.service.ioservice;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.parallel.*;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.ioservice.config.IoStubsContextConfiguration;
 import ru.otus.hw.service.ioservice.stub.FakeStdOut;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Isolated
-@Execution(ExecutionMode.SAME_THREAD)
-@ResourceLock(value = "FAKE_CONSOLE", mode = ResourceAccessMode.READ_WRITE)
+@DisplayName("Basic console output behaviour check")
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = IoStubsContextConfiguration.class)
+@TestPropertySource("classpath:/test-application.properties")
 class PrintLineTest {
-    private static IOService ioService;
-    private static FakeStdOut fakeConsole;
+    @Autowired
+    @Qualifier("mockedIO")
+    private IOService ioService;
 
-    @BeforeAll
-    public static void init() {
-        ApplicationContext context = new ClassPathXmlApplicationContext("io-tests/io-test-spring-context.xml");
-        ioService = context.getBean(IOService.class);
-        fakeConsole = context.getBean(FakeStdOut.class);
-    }
+    @Autowired
+    private FakeStdOut fakeConsole;
 
     @BeforeEach
     void setUp() {
         fakeConsole.reset();
-    }
-
-
-    @AfterAll
-    static void tearDown() {
-        fakeConsole.close();
     }
 
     @Test
@@ -77,17 +73,21 @@ class PrintLineTest {
     @Test
     @DisplayName("Correct output of new-line")
     void printNonAlphabeticCharacter1(){
-        ioService.printLine("\n\n\nAaBbCc01233210\n\n\n");
+        var tripleLineFeed = System.lineSeparator().repeat(3);
+        var testData = tripleLineFeed+"AaBbCc01233210"+tripleLineFeed;
+        ioService.printLine(testData);
         fakeConsole.flush();
-        assertEquals("\n\n\nAaBbCc01233210\n\n\n"+System.lineSeparator(), fakeConsole.getContent());
+        assertEquals(testData+System.lineSeparator(), fakeConsole.getContent());
     }
 
     @Test
     @DisplayName("Correct output of new-line between other letters")
     void printNonAlphabeticCharacter2(){
-        ioService.printLine("AaBbCc\n\n\n01233210");
+        var tripleLineFeed = System.lineSeparator().repeat(3);
+        var testData = "AaBbCc"+tripleLineFeed+"01233210";
+        ioService.printLine(testData);
         fakeConsole.flush();
-        assertEquals("AaBbCc\n\n\n01233210"+System.lineSeparator(), fakeConsole.getContent());
+        assertEquals(testData+System.lineSeparator(), fakeConsole.getContent());
     }
 
     @Test

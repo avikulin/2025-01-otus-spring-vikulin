@@ -31,6 +31,16 @@ public class QuestionValidatorImpl implements QuestionValidator {
         checkAnswersHaveValue(obj);
     }
 
+    @Override
+    public boolean checkForUserFreeOption(Question question) {
+        var answers = question.answers();
+        if (answers.size() != 1) {
+            return false;
+        }
+        var firstAnswer = answers.get(0);
+        return (firstAnswer.text() == null && firstAnswer.isCorrect());
+    }
+
     private void checkQuestionPresent(Question question) {
         var questionText = question.text();
         var checkQuestionNotPresent = (questionText == null || questionText.isBlank());

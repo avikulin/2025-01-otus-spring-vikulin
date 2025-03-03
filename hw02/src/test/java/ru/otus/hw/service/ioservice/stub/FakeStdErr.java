@@ -1,5 +1,6 @@
 package ru.otus.hw.service.ioservice.stub;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +14,13 @@ import java.io.PrintStream;
  * Не поддерживает параллельное выполнение тестов!
  */
 @Component
-public class FakeStdErr {
+@Scope("singleton")
+public class FakeStdErr implements DisposableBean {
     private final OutputStream fakeStdErr =  new ByteArrayOutputStream();
     private final PrintStream fakeErrorConsole =  new PrintStream(fakeStdErr);
 
     public PrintStream getInstance() {
-        return fakeErrorConsole;
+        return this.fakeErrorConsole;
     }
 
     public String getContent() {
@@ -34,12 +36,9 @@ public class FakeStdErr {
         ((ByteArrayOutputStream)this.fakeStdErr).reset();
     }
 
-    public void close(){
-        try {
-            this.fakeStdErr.close();
-            this.fakeErrorConsole.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Error occurred during the closing of the streams: "+e.getLocalizedMessage());
-        }
+    @Override
+    public void destroy() throws Exception {
+        this.fakeStdErr.close();
+        this.fakeErrorConsole.close();
     }
 }

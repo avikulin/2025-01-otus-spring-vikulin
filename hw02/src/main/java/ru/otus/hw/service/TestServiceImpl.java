@@ -2,6 +2,7 @@ package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Question;
@@ -11,7 +12,9 @@ import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.io.IOService;
 import ru.otus.hw.utils.formatters.OutputStreamFormatter;
 import ru.otus.hw.utils.validators.AnswerValidator;
+import ru.otus.hw.utils.validators.QuestionValidator;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
@@ -20,34 +23,37 @@ public class TestServiceImpl implements TestService {
                                                            "separated by commas of whitespaces " +
                                                            "(in case of multi-variant answer) \\> ";
     private static final String USER_INVITE_PROMPT = "Please answer the questions below%n";
-
-    private static final String ERROR_MSG_TEMPLATE = "\nYou have entered incorrect content: %s.\nTry again...\n";
-
+    private static final String CANT_OBTAIN_THE_ANSWER_ERROR = "Can't obtain the suitable answer from user (max. attempts exceeded)." +
+                                                               System.lineSeparator();
     private final IOService ioService;
 
     private final QuestionDao questionDao;
 
     private final OutputStreamFormatter outputStreamFormatter;
 
-    private String captureUserInput(Question question, IOService ioService){
-        if (AnswerValidator.checkForUserFreeOption(question)) {
-            return ioService.readStringWithPrompt(FREE_ANSWER_PROMPT);
-        } else {
-            return ioService.readStringWithPrompt(OPTION_IDX_ANSWER_PROMPT);
-        }
-    }
+    private final AnswerValidator answerValidator;
 
-    @SneakyThrows
-    private boolean processUserInput(Question question, IOService ioService){
-        while (true){
+    private final QuestionValidator questionValidator;
+
+    private boolean getAndCheckUserAnswer(Question question, IOService ioService){
+        if (questionValidator.checkForUserFreeOption(question)) {
+            ioService.readStringWithPrompt(FREE_ANSWER_PROMPT);
+            return true; // ответы в свободной форме не проверяются валидатором
+        } else {
+            var upperIdx = question.answers().size();
+            var result = false;
             try {
-                String userInput = this.captureUserInput(question, this.ioService);
-                return AnswerValidator.checkAnswer(question, userInput);
-            }catch (IncorrectAnswerException ex){
-                String msg = String.format(ERROR_MSG_TEMPLATE, ex.getMessage());
-                ioService.printError(msg);
-                Thread.sleep(500);
+                var answer = ioService.readIntForRangeWithPrompt(1, upperIdx,
+                                                                    OPTION_IDX_ANSWER_PROMPT,
+                                                                    CANT_OBTAIN_THE_ANSWER_ERROR
+                );
+                result = answerValidator.checkAnswer(question, answer);
+            } catch (IncorrectAnswerException e) {
+                log.error(e.getMessage());
+                this.ioService.printError(e.getMessage());
+                result = false;
             }
+            return result;
         }
     }
 
@@ -59,7 +65,7 @@ public class TestServiceImpl implements TestService {
         ioService.printFormattedLine(USER_INVITE_PROMPT);
         for (var question: questions) {
             outputStreamFormatter.questionToStream(question);
-            var isAnswerValid = this.processUserInput(question, ioService);
+            var isAnswerValid = this.getAndCheckUserAnswer(question, ioService);
             testResult.applyAnswer(question, isAnswerValid);
         }
         return testResult;

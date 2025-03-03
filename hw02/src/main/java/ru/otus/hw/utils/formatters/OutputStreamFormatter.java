@@ -30,7 +30,7 @@ public class OutputStreamFormatter {
         int answerIdx = 0;
         for (Answer a : question.answers()) {
             answerIdx++;
-            if (a.text() == null) {
+            if (questionValidator.checkForUserFreeOption(question)) {
                 ioService.printLine(MSG_FREE_USER_ANSWER_TEMPLATE);
             } else {
                 ioService.printFormattedLine(MSG_FIXED_ANSWER_TEMPLATE, answerIdx, a.text());

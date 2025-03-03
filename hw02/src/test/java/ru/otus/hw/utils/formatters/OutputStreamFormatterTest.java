@@ -48,8 +48,13 @@ class OutputStreamFormatterTest {
 
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(OutputStreamFormatterArgsProvider.class)
-    void questionToStreamOneAnswer(String testName, Question question) {
+    void questionToStreamOneAnswer(String testName, Question question, boolean isFreeUserAnswer) {
+        // подготовка теста
+        when(mockQuestionValidator.checkForUserFreeOption(any(Question.class))).thenReturn(isFreeUserAnswer);
+
+        // выполняем тест
         outputStreamFormatter.questionToStream(question);
+
         // проверяем, что только один раз вызывается валидатор
         verify(mockQuestionValidator, times(1)).validateQuestion(question);
 
@@ -60,7 +65,7 @@ class OutputStreamFormatterTest {
         int answerIdx = 0;
         for (var answer : question.answers()) {
             answerIdx++;
-            if (StringUtils.isEmpty(answer.text())) {
+            if (mockQuestionValidator.checkForUserFreeOption(question)) {
                 verify(mockIoService, times(1))
                     .printLine(eq(MSG_FREE_USER_ANSWER_TEMPLATE));
             } else {

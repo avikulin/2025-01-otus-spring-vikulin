@@ -18,7 +18,8 @@ public class OutputStreamFormatterArgsProvider implements ArgumentsProvider {
                                 List.of(
                                         new Answer(null,true)
                                 )
-                        )
+                        ),
+                        true
                 ),
                 Arguments.of(
                         "Question with one option",
@@ -26,7 +27,8 @@ public class OutputStreamFormatterArgsProvider implements ArgumentsProvider {
                                 List.of(
                                         new Answer("Here is the answer",true)
                                 )
-                        )
+                        ),
+                        false
                 ),
                 Arguments.of("Question with two options",
                         new Question("X-files main statement",
@@ -34,7 +36,8 @@ public class OutputStreamFormatterArgsProvider implements ArgumentsProvider {
                                         new Answer("The Tommyknockers exists",false),
                                         new Answer("The truth is out there",true)
                                 )
-                        )
+                        ),
+                        false
                 )
         );
     }

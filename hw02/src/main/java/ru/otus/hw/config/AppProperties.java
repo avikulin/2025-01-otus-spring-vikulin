@@ -2,14 +2,12 @@ package ru.otus.hw.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 @Data
-@Component("appProperties")
-@PropertySource("classpath:application.properties")
+@Component
 public class AppProperties implements TestConfig, TestFileReaderConfig {
-    @Value("${test.fileName}")
+    @Value("${test.filename}")
     private String testFileName;
 
     @Value("${opencsv.settings.column-separation-symbol}")
@@ -18,6 +16,9 @@ public class AppProperties implements TestConfig, TestFileReaderConfig {
     @Value("${opencsv.settings.skip-first-rows}")
     private int numberOfRowsSkipped;
 
-    @Value("${test.rightAnswersCountToPass}")
+    @Value("${test.right-answers-count-to-pass}")
     private int rightAnswersCountToPass;
+
+    @Value("${test.max-number-of-input-data-attempts}")
+    int maxNumberOfInputDataAttempts;
 }

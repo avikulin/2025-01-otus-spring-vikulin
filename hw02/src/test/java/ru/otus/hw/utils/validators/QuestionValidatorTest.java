@@ -1,29 +1,29 @@
 package ru.otus.hw.utils.validators;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ValidatorsContextConfiguration.class)
+@TestPropertySource(locations = "classpath:/test-application.properties")
 class QuestionValidatorTest {
-
     private static final String MSG_QUESTION_IS_NULL = "Reference to question must be non-null";
-    private static QuestionValidator validator;
 
-    @BeforeAll
-    public static void globalSetup(){
-        ApplicationContext context = new ClassPathXmlApplicationContext("io-tests/io-test-spring-context.xml");
-        validator = (QuestionValidator) context.getBean("questionValidator");
-    }
+    @Autowired
+    private QuestionValidator validator;
 
     @Test
     @DisplayName("Null-referenced question")
@@ -154,5 +154,68 @@ class QuestionValidatorTest {
         );
 
         assertThrows(QuestionStateException.class, ()-> validator.validateQuestion(testQuestion));
+    }
+
+    @Test
+    @DisplayName("One incorrect null-answer is not a free user answer option ")
+    void validateFreeUserOption1(){
+        var notFreeAnswer = new Question("Some useless question",
+                                            List.of(
+                                                    new Answer(null,false)
+                                            ));
+        assertFalse(this.validator.checkForUserFreeOption(notFreeAnswer));
+    }
+
+    @Test
+    @DisplayName("One incorrect null-answer & one correct null-answer is not a free user answer option ")
+    void validateFreeUserOption2(){
+        var notFreeAnswer = new Question("Some useless question",
+                List.of(
+                        new Answer(null,false),
+                        new Answer(null,true)
+                ));
+        assertFalse(this.validator.checkForUserFreeOption(notFreeAnswer));
+    }
+
+    @Test
+    @DisplayName("Two correct null-answer is not a free user answer option ")
+    void validateFreeUserOption3(){
+        var notFreeAnswer = new Question("Some useless question",
+                List.of(
+                        new Answer(null,true),
+                        new Answer(null,true)
+                ));
+        assertFalse(this.validator.checkForUserFreeOption(notFreeAnswer));
+    }
+
+    @Test
+    @DisplayName("One correct not-null-answer is not a free user answer option ")
+    void validateFreeUserOption4(){
+        var notFreeAnswer = new Question("Some useless question",
+                List.of(
+                        new Answer("fsdfsdf",true)
+                ));
+        assertFalse(this.validator.checkForUserFreeOption(notFreeAnswer));
+    }
+
+    @Test
+    @DisplayName("One correct not-null-answer & one correct null-answe is not a free user answer option ")
+    void validateFreeUserOption5(){
+        var notFreeAnswer = new Question("Some useless question",
+                List.of(
+                        new Answer(null,true),
+                        new Answer("fsdfsdf",true)
+                ));
+        assertFalse(this.validator.checkForUserFreeOption(notFreeAnswer));
+    }
+
+    @Test
+    @DisplayName("One correct null-answer is a free user answer option ")
+    void validateFreeUserOption6(){
+        var notFreeAnswer = new Question("Some useless question",
+                List.of(
+                        new Answer(null,true)
+                ));
+        assertTrue(this.validator.checkForUserFreeOption(notFreeAnswer));
     }
 }

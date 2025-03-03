@@ -1,4 +1,4 @@
-package ru.otus.hw.dao.dto;
+package ru.otus.hw.dao.converters;
 
 import com.opencsv.bean.AbstractCsvConverter;
 import ru.otus.hw.domain.Answer;

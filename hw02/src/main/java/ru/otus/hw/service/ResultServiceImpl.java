@@ -9,6 +9,13 @@ import ru.otus.hw.service.io.IOService;
 @Service
 @RequiredArgsConstructor
 public class ResultServiceImpl implements ResultService {
+    public static final String MSG_EMPTY_STRING = "";
+    public static final String MSG_RESULTS_HEADER = "[ Test results ]";
+    public static final String TEMPLATE_STUDENT_INFO = "Student: %s";
+    public static final String TEMPLATE_ANSWERED_QUESTIONS_COUNT = "Answered questions count: %d";
+    public static final String TEMPLATE_RIGHT_ANSWERS_COUNT = "Right answers count: %d";
+    public static final String MSG_CONGRATULATIONS = "Congratulations! You have passed the test!";
+    public static final String MSG_TEST_FAILURE = "Sorry. You have failed the test.";
 
     private final TestConfig testConfig;
 
@@ -16,16 +23,16 @@ public class ResultServiceImpl implements ResultService {
 
     @Override
     public void showResult(TestResult testResult) {
-        ioService.printLine("");
-        ioService.printLine("Test results: ");
-        ioService.printFormattedLine("Student: %s", testResult.getStudent().getFullName());
-        ioService.printFormattedLine("Answered questions count: %d", testResult.getAnsweredQuestions().size());
-        ioService.printFormattedLine("Right answers count: %d", testResult.getRightAnswersCount());
+        ioService.printLine(MSG_EMPTY_STRING);
+        ioService.printLine(MSG_RESULTS_HEADER);
+        ioService.printFormattedLine(TEMPLATE_STUDENT_INFO, testResult.getStudent().getFullName());
+        ioService.printFormattedLine(TEMPLATE_ANSWERED_QUESTIONS_COUNT, testResult.getAnsweredQuestions().size());
+        ioService.printFormattedLine(TEMPLATE_RIGHT_ANSWERS_COUNT, testResult.getRightAnswersCount());
 
         if (testResult.getRightAnswersCount() >= testConfig.getRightAnswersCountToPass()) {
-            ioService.printLine("Congratulations! You passed test!");
+            ioService.printLine(MSG_CONGRATULATIONS);
             return;
         }
-        ioService.printLine("Sorry. You fail test.");
+        ioService.printLine(MSG_TEST_FAILURE);
     }
 }
