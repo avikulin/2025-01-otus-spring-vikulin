@@ -1,18 +1,18 @@
 package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.dao.QuestionDao;
+import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
-import ru.otus.hw.service.io.IOService;
-import ru.otus.hw.utils.formatters.OutputStreamFormatter;
-import ru.otus.hw.utils.validators.AnswerValidator;
-import ru.otus.hw.utils.validators.QuestionValidator;
+import ru.otus.hw.service.contracts.TestService;
+import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.utils.formatters.contracts.OutputFormatter;
+import ru.otus.hw.utils.validators.contract.AnswerValidator;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 @Slf4j
 @Service
@@ -29,7 +29,7 @@ public class TestServiceImpl implements TestService {
 
     private final QuestionDao questionDao;
 
-    private final OutputStreamFormatter outputStreamFormatter;
+    private final OutputFormatter outputFormatter;
 
     private final AnswerValidator answerValidator;
 
@@ -64,7 +64,7 @@ public class TestServiceImpl implements TestService {
         ioService.printEmptyLine();
         ioService.printFormattedLine(USER_INVITE_PROMPT);
         for (var question: questions) {
-            outputStreamFormatter.questionToStream(question);
+            outputFormatter.questionToStream(question);
             var isAnswerValid = this.getAndCheckUserAnswer(question, ioService);
             testResult.applyAnswer(question, isAnswerValid);
         }

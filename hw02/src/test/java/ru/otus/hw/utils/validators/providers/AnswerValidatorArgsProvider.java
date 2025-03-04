@@ -1,4 +1,4 @@
-package ru.otus.hw.utils.validators;
+package ru.otus.hw.utils.validators.providers;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;

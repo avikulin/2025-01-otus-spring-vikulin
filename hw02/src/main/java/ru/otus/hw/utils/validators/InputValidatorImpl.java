@@ -3,6 +3,7 @@ package ru.otus.hw.utils.validators;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.validators.contract.InputValidator;
 
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,9 @@ import java.util.stream.Collectors;
 @Component
 @NoArgsConstructor
 public class InputValidatorImpl implements InputValidator {
-    public static final String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: from %d to %d";
-    public static final String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ %s ]";
-    public static final String MSG_EMPTY_OPTIONS_ERROR = "Empty options set is incorrect by default";
+    private static final String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: from %d to %d";
+    private static final String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ %s ]";
+    private static final String MSG_EMPTY_OPTIONS_ERROR = "Empty options set is incorrect by default";
 
     /**
      * Проверка на корректные индексы:

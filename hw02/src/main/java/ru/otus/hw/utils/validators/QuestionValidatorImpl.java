@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 import java.util.List;
 import java.util.Objects;

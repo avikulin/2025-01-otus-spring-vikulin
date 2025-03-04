@@ -16,11 +16,13 @@ import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.QuestionReadException;
 import ru.otus.hw.exceptions.QuestionStateException;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.contracts.ResultService;
+import ru.otus.hw.service.contracts.StudentService;
+import ru.otus.hw.service.contracts.TestService;
+import ru.otus.hw.service.io.contracts.IOService;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.*;

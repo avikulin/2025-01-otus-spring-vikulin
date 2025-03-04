@@ -5,7 +5,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import ru.otus.hw.service.TestRunnerService;
+import ru.otus.hw.service.contracts.TestRunnerService;
 
 @Configuration
 @ComponentScan

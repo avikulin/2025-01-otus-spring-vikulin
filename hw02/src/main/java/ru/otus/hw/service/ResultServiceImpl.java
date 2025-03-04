@@ -2,20 +2,21 @@ package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.config.TestConfig;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.domain.TestResult;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.contracts.ResultService;
+import ru.otus.hw.service.io.contracts.IOService;
 
 @Service
 @RequiredArgsConstructor
 public class ResultServiceImpl implements ResultService {
-    public static final String MSG_EMPTY_STRING = "";
-    public static final String MSG_RESULTS_HEADER = "[ Test results ]";
-    public static final String TEMPLATE_STUDENT_INFO = "Student: %s";
-    public static final String TEMPLATE_ANSWERED_QUESTIONS_COUNT = "Answered questions count: %d";
-    public static final String TEMPLATE_RIGHT_ANSWERS_COUNT = "Right answers count: %d";
-    public static final String MSG_CONGRATULATIONS = "Congratulations! You have passed the test!";
-    public static final String MSG_TEST_FAILURE = "Sorry. You have failed the test.";
+    private static final String MSG_EMPTY_STRING = "";
+    private static final String MSG_RESULTS_HEADER = "[ Test results ]";
+    private static final String TEMPLATE_STUDENT_INFO = "Student: %s";
+    private static final String TEMPLATE_ANSWERED_QUESTIONS_COUNT = "Answered questions count: %d";
+    private static final String TEMPLATE_RIGHT_ANSWERS_COUNT = "Right answers count: %d";
+    private static final String MSG_CONGRATULATIONS = "Congratulations! You have passed the test!";
+    private static final String MSG_TEST_FAILURE = "Sorry. You have failed the test.";
 
     private final TestConfig testConfig;
 

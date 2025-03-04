@@ -1,6 +1,5 @@
 package ru.otus.hw.utils.formatters;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,9 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.domain.Question;
-import ru.otus.hw.service.io.IOService;
-import ru.otus.hw.utils.validators.QuestionValidator;
-
+import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 import static org.mockito.Mockito.*;
 
@@ -31,7 +29,7 @@ class OutputStreamFormatterTest {
     private QuestionValidator mockQuestionValidator;
 
     @InjectMocks
-    private OutputStreamFormatter outputStreamFormatter;
+    private OutputStreamFormatter outputFormatter;
 
     @BeforeEach
     void setUpTest() {
@@ -42,7 +40,7 @@ class OutputStreamFormatterTest {
     }
 
     @AfterEach
-    void tierDown(){
+    void tierDown() {
         reset(mockQuestionValidator, mockIoService);
     }
 
@@ -53,24 +51,24 @@ class OutputStreamFormatterTest {
         when(mockQuestionValidator.checkForUserFreeOption(any(Question.class))).thenReturn(isFreeUserAnswer);
 
         // выполняем тест
-        outputStreamFormatter.questionToStream(question);
+        outputFormatter.questionToStream(question);
 
         // проверяем, что только один раз вызывается валидатор
         verify(mockQuestionValidator, times(1)).validateQuestion(question);
 
         // проверяем взаимодействие с IO-сервисов
         verify(mockIoService, times(1))
-            .printFormattedLine(MSG_QUESTION_TEMPLATE, question.text());
+                .printFormattedLine(MSG_QUESTION_TEMPLATE, question.text());
 
         int answerIdx = 0;
         for (var answer : question.answers()) {
             answerIdx++;
             if (mockQuestionValidator.checkForUserFreeOption(question)) {
                 verify(mockIoService, times(1))
-                    .printLine(eq(MSG_FREE_USER_ANSWER_TEMPLATE));
+                        .printLine(eq(MSG_FREE_USER_ANSWER_TEMPLATE));
             } else {
                 verify(mockIoService, times(1))
-                    .printFormattedLine(eq(MSG_FIXED_ANSWER_TEMPLATE), eq(answerIdx), eq(answer.text()));
+                        .printFormattedLine(eq(MSG_FIXED_ANSWER_TEMPLATE), eq(answerIdx), eq(answer.text()));
             }
         }
     }

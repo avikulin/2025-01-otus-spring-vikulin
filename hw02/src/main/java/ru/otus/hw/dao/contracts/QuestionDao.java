@@ -1,4 +1,4 @@
-package ru.otus.hw.dao;
+package ru.otus.hw.dao.contracts;
 
 import ru.otus.hw.domain.Question;
 

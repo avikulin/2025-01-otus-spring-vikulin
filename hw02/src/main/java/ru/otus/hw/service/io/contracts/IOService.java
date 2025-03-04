@@ -1,4 +1,4 @@
-package ru.otus.hw.service.io;
+package ru.otus.hw.service.io.contracts;
 
 import java.util.List;
 

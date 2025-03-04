@@ -2,14 +2,12 @@ package ru.otus.hw.dao;
 
 import com.opencsv.bean.CsvToBean;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.otus.hw.config.TestFileNameProvider;
+import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.dao.dto.QuestionDto;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionReadException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

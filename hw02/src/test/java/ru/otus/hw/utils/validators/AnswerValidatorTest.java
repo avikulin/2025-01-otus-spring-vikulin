@@ -12,6 +12,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
+import ru.otus.hw.utils.validators.contract.AnswerValidator;
+import ru.otus.hw.utils.validators.providers.AnswerValidatorArgsProvider;
 
 import java.util.List;
 

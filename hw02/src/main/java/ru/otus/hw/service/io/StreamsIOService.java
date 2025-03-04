@@ -6,11 +6,11 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.config.TestConfig;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
-import ru.otus.hw.utils.formatters.InputStreamFormatter;
-import ru.otus.hw.utils.validators.AnswerValidator;
-import ru.otus.hw.utils.validators.InputValidator;
+import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.utils.formatters.contracts.InputFormatter;
+import ru.otus.hw.utils.validators.contract.InputValidator;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -26,7 +26,7 @@ public class StreamsIOService implements IOService {
                                                      System.lineSeparator() + "Try again..." +
                                                      System.lineSeparator();
 
-    InputStreamFormatter formatter;
+    InputFormatter formatter;
     InputValidator inputValidator;
     TestConfig testConfig;
     PrintStream printStream;
@@ -37,7 +37,7 @@ public class StreamsIOService implements IOService {
     public StreamsIOService(@Value("#{T(System).out}") PrintStream printStream,
                             @Value("#{T(System).err}") PrintStream errorStream,
                             @Value("#{T(System).in}") InputStream inputStream,
-                            InputStreamFormatter formatter,
+                            InputFormatter formatter,
                             InputValidator inputValidator,
                             TestConfig testConfig) {
         this.formatter = formatter;
@@ -70,7 +70,7 @@ public class StreamsIOService implements IOService {
 
     @Override
     public void printEmptyLine() {
-        printStream.println("");
+        printStream.println();
     }
 
     @Override

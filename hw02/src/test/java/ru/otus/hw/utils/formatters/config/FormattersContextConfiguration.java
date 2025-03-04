@@ -1,4 +1,4 @@
-package ru.otus.hw.utils.formatters;
+package ru.otus.hw.utils.formatters.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

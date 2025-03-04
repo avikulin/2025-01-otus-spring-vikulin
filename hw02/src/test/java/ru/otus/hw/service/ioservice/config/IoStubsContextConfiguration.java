@@ -8,17 +8,17 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import ru.otus.hw.config.CsvBeanConfig;
-import ru.otus.hw.config.TestConfig;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.service.io.StreamsIOService;
+import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.ioservice.stub.FakeStdErr;
 import ru.otus.hw.service.ioservice.stub.FakeStdIn;
 import ru.otus.hw.service.ioservice.stub.FakeStdOut;
-import ru.otus.hw.utils.formatters.InputStreamFormatter;
 import ru.otus.hw.utils.formatters.OutputStreamFormatter;
-import ru.otus.hw.utils.validators.AnswerValidator;
-import ru.otus.hw.utils.validators.InputValidator;
-import ru.otus.hw.utils.validators.QuestionValidator;
+import ru.otus.hw.utils.formatters.contracts.InputFormatter;
+import ru.otus.hw.utils.validators.contract.AnswerValidator;
+import ru.otus.hw.utils.validators.contract.InputValidator;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 
 @Configuration
@@ -49,7 +49,7 @@ public class IoStubsContextConfiguration {
     FakeStdIn fakeStdIn;
 
     @Autowired
-    InputStreamFormatter inputStreamFormatter;
+    InputFormatter inputFormatter;
 
     @Autowired
     InputValidator inputValidator;
@@ -62,7 +62,7 @@ public class IoStubsContextConfiguration {
         return new StreamsIOService(fakeStdOut.getInstance(),
                                     fakeStdErr.getInstance(),
                                     fakeStdIn.getInstance(),
-                                    inputStreamFormatter,
+                inputFormatter,
                                     inputValidator,
                                     testConfig);
     }

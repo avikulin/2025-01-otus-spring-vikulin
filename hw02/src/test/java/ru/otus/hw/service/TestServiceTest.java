@@ -8,14 +8,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.otus.hw.dao.QuestionDao;
+import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.contracts.TestService;
+import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.utils.formatters.OutputStreamFormatter;
-import ru.otus.hw.utils.validators.AnswerValidator;
-import ru.otus.hw.utils.validators.QuestionValidator;
+import ru.otus.hw.utils.validators.contract.AnswerValidator;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 import java.util.List;
 

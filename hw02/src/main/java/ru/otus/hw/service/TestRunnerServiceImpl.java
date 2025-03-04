@@ -3,10 +3,13 @@ package ru.otus.hw.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.exceptions.QuestionReadException;
 import ru.otus.hw.exceptions.QuestionStateException;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.contracts.ResultService;
+import ru.otus.hw.service.contracts.StudentService;
+import ru.otus.hw.service.contracts.TestRunnerService;
+import ru.otus.hw.service.contracts.TestService;
+import ru.otus.hw.service.io.contracts.IOService;
 
 @Slf4j
 @Service

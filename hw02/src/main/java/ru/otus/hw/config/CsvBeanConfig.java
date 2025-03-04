@@ -3,13 +3,12 @@ package ru.otus.hw.config;
 import com.opencsv.bean.ColumnPositionMappingStrategyBuilder;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import ru.otus.hw.config.contracts.TestFileReaderConfig;
 import ru.otus.hw.dao.dto.QuestionDto;
 import ru.otus.hw.exceptions.QuestionReadException;
 

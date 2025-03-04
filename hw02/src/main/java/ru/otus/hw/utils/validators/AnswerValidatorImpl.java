@@ -7,6 +7,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.validators.contract.AnswerValidator;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +18,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AnswerValidatorImpl implements AnswerValidator {
-    public static final String MSG_EMPTY_ANSWER_ERROR = "Empty answer content is incorrect";
+    private static final String MSG_EMPTY_ANSWER_ERROR = "Empty answer content is incorrect";
 
     QuestionValidator questionValidator;
 

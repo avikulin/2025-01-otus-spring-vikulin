@@ -9,7 +9,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.contracts.StudentService;
+import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.ioservice.config.IoStubsContextConfiguration;
 import ru.otus.hw.service.ioservice.stub.FakeStdIn;
 

@@ -4,12 +4,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
-import org.springframework.test.context.ContextConfiguration;
+import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
+import ru.otus.hw.utils.validators.contract.QuestionValidator;
 
 import java.util.ArrayList;
 import java.util.List;

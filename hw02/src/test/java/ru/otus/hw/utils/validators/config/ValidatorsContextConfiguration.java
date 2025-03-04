@@ -1,4 +1,4 @@
-package ru.otus.hw.utils.validators;
+package ru.otus.hw.utils.validators.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -8,12 +8,10 @@ import ru.otus.hw.utils.formatters.OutputStreamFormatter;
 
 @Configuration
 @ComponentScan(basePackages = {"ru.otus.hw.utils.formatters",
-                               "ru.otus.hw.service.io",
                                "ru.otus.hw.utils.validators",
                                "ru.otus.hw.config"},
                excludeFilters = {
                     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                                           classes = {CsvBeanConfig.class, OutputStreamFormatter.class})
                })
-public class ValidatorsContextConfiguration {
-}
+public class ValidatorsContextConfiguration {}

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.formatters.contracts.InputFormatter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,10 +13,10 @@ import java.util.stream.Collectors;
 
 @Component
 @NoArgsConstructor
-public class InputStreamFormatter {
+public class InputStreamFormatter implements InputFormatter {
     private static final String ANSWER_SPLIT_REGEX = "[,]\\s*";
-    public static final String TEMPLATE_INCORRECT_CONTENT_ERROR = "Not a digit value %s";
-    public static final String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
+    private static final String TEMPLATE_INCORRECT_CONTENT_ERROR = "Not a digit value %s";
+    private static final String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
 
     /**
      * Проверка и парсинг введенных пользователем значений
@@ -23,6 +24,7 @@ public class InputStreamFormatter {
      * @return  Числовая последовательность номеров ответов, введенных пользователем.
      * @throws IncorrectAnswerException выбрасывается в случае выявления некорректного ввода.
      */
+    @Override
     public List<Integer> parseAnswers(String userInput) throws IncorrectAnswerException {
         if (StringUtils.isBlank(userInput)) {
             throw new IncorrectAnswerException(MSG_EMPTY_INPUT_STRING_ERROR);

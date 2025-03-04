@@ -9,12 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.otus.hw.config.TestConfig;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
-import ru.otus.hw.service.io.IOService;
+import ru.otus.hw.service.io.contracts.IOService;
 
 import java.util.List;
 

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.formatters.config.FormattersContextConfiguration;
+import ru.otus.hw.utils.formatters.contracts.InputFormatter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ContextConfiguration(classes = FormattersContextConfiguration.class)
 class InputStreamFormatterTest {
     @Autowired
-    InputStreamFormatter formatter;
+    InputFormatter formatter;
 
     private static Stream<Arguments> getPositiveTestData() {
         return Stream.of(
