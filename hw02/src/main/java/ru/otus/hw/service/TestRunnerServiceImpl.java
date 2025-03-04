@@ -17,6 +17,7 @@ import ru.otus.hw.service.io.contracts.IOService;
 public class TestRunnerServiceImpl implements TestRunnerService {
     private static final String MSG_QUESTION_READ_EXCEPTION  = "The internal error appeared during the load " +
                                                                "of the test configuration file with question";
+
     private static final String MSG_QUESTION_STATE_EXCEPTION = "The incorrect question found inside " +
                                                                "the test configuration file";
 
@@ -37,18 +38,18 @@ public class TestRunnerServiceImpl implements TestRunnerService {
             var student = studentService.determineCurrentStudent();
             var testResult = testService.executeTestFor(student);
             resultService.showResult(testResult);
-        } catch (QuestionReadException ex){
-            var msg = String.format(MSG_QUESTION_READ_EXCEPTION+": %s", ex.getMessage());
+        } catch (QuestionReadException ex) {
+            var msg = String.format(MSG_QUESTION_READ_EXCEPTION + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_QUESTION_READ_EXCEPTION+".");
-        } catch (QuestionStateException ex){
-            var msg = String.format(MSG_QUESTION_STATE_EXCEPTION+": %s", ex.getMessage());
+            ioService.printError(MSG_QUESTION_READ_EXCEPTION + ".");
+        } catch (QuestionStateException ex) {
+            var msg = String.format(MSG_QUESTION_STATE_EXCEPTION + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_QUESTION_STATE_EXCEPTION+".");
+            ioService.printError(MSG_QUESTION_STATE_EXCEPTION + ".");
         } catch (Throwable ex) {
-            var msg = String.format(MSG_UNKNOWN_ERROR+": %s", ex.getMessage());
+            var msg = String.format(MSG_UNKNOWN_ERROR + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_UNKNOWN_ERROR+".");
+            ioService.printError(MSG_UNKNOWN_ERROR + ".");
         }
         log.info("Application finished");
     }

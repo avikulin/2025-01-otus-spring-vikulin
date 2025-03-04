@@ -12,8 +12,11 @@ import java.util.stream.Collectors;
 @Component
 @NoArgsConstructor
 public class InputValidatorImpl implements InputValidator {
-    private static final String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: from %d to %d";
+    private static final String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: " +
+                                                                         "from %d to %d";
+
     private static final String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ %s ]";
+
     private static final String MSG_EMPTY_OPTIONS_ERROR = "Empty options set is incorrect by default";
 
     /**
@@ -33,7 +36,11 @@ public class InputValidatorImpl implements InputValidator {
         if (answerIdx.isEmpty()) {
             throw new IncorrectAnswerException(MSG_EMPTY_OPTIONS_ERROR);
         }
+        this.checkUnboundValues(min, max, answerIdx);
+        this.checkDoubledOptions(answerIdx);
+    }
 
+    private void checkUnboundValues(int min, int max, List<Integer> answerIdx) {
         var countUnbound = answerIdx
                 .stream()
                 .filter(x -> x < min || x > max)
@@ -42,14 +49,16 @@ public class InputValidatorImpl implements InputValidator {
             String msg = String.format(TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR, min, max);
             throw new IncorrectAnswerException(msg);
         }
+    }
 
+    private void checkDoubledOptions(List<Integer> answerIdx) {
         var doubledOptions = answerIdx.stream()
                 .collect(
-                        Collectors.toMap(k->k, v->1, Integer::sum)
+                        Collectors.toMap(k -> k, v -> 1, Integer::sum)
                 )
                 .entrySet()
                 .stream()
-                .filter(es->es.getValue() > 1)
+                .filter(es -> es.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .toList();
 

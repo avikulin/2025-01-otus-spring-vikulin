@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class InputStreamFormatter implements InputFormatter {
     private static final String ANSWER_SPLIT_REGEX = "[,]\\s*";
+
     private static final String TEMPLATE_INCORRECT_CONTENT_ERROR = "Not a digit value %s";
+
     private static final String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
 
     /**
@@ -31,13 +33,13 @@ public class InputStreamFormatter implements InputFormatter {
         }
         var answerTokens = userInput.split(ANSWER_SPLIT_REGEX, -1);
         var incorrectTokens = Arrays.stream(answerTokens)
-                                    .filter(t->!NumberUtils.isDigits(t) || StringUtils.isBlank(t))
+                                    .filter(t -> !NumberUtils.isDigits(t) || StringUtils.isBlank(t))
                                     .toList();
 
-        if (!incorrectTokens.isEmpty()){
+        if (!incorrectTokens.isEmpty()) {
             String msg = String.format(TEMPLATE_INCORRECT_CONTENT_ERROR,
                                         incorrectTokens.stream()
-                                                       .map(t->"\""+t+"\"")
+                                                       .map(t -> "\"" + t + "\"")
                                                        .collect(Collectors.joining(",","[ "," ]"))
             );
             throw new IncorrectAnswerException(msg);

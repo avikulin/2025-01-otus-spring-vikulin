@@ -42,7 +42,7 @@ public class AnswerValidatorImpl implements AnswerValidator {
         } else {                                                          // номера ответов
             var variants = question.answers();
             var correctAnswersIdx = IntStream.range(1, variants.size() + 1)
-                                             .filter(i->variants.get(i - 1).isCorrect())
+                                             .filter(i -> variants.get(i - 1).isCorrect())
                                              .boxed()
                                              .collect(Collectors.toSet());
             return (correctAnswersIdx.containsAll(answer));

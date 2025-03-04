@@ -19,12 +19,17 @@ import ru.otus.hw.utils.validators.contract.QuestionValidator;
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
     private static final String FREE_ANSWER_PROMPT = "Enter answer in a free form \\> ";
-    private static final String OPTION_IDX_ANSWER_PROMPT = "Enter index (integer number) of correct answers you choose, " +
+
+    private static final String OPTION_IDX_ANSWER_PROMPT = "Enter index (integer number) of correct " +
+                                                            "answers you choose, " +
                                                            "separated by commas of whitespaces " +
                                                            "(in case of multi-variant answer) \\> ";
+
     private static final String USER_INVITE_PROMPT = "Please answer the questions below%n";
-    private static final String CANT_OBTAIN_THE_ANSWER_ERROR = "Can't obtain the suitable answer from user (max. attempts exceeded)." +
-                                                               System.lineSeparator();
+
+    private static final String CANT_OBTAIN_THE_ANSWER_ERROR = "Can't obtain the suitable answer from user " +
+                                                               "(max. attempts exceeded)." + System.lineSeparator();
+
     private final IOService ioService;
 
     private final QuestionDao questionDao;
@@ -35,7 +40,7 @@ public class TestServiceImpl implements TestService {
 
     private final QuestionValidator questionValidator;
 
-    private boolean getAndCheckUserAnswer(Question question, IOService ioService){
+    private boolean getAndCheckUserAnswer(Question question, IOService ioService) {
         if (questionValidator.checkForUserFreeOption(question)) {
             ioService.readStringWithPrompt(FREE_ANSWER_PROMPT);
             return true; // ответы в свободной форме не проверяются валидатором

@@ -16,10 +16,9 @@ import java.io.InputStreamReader;
 
 @Configuration
 public class CsvBeanConfig {
+    private static final String MSG_TEMPLATE_RESOURCE_READ_ERROR = "Unreachable classpath resource: %s";
 
     private final TestFileReaderConfig testFileReaderCfg;
-
-    private static final String MSG_TEMPLATE_RESOURCE_READ_ERROR = "Unreachable classpath resource: %s";
 
     @Autowired
     public CsvBeanConfig(TestFileReaderConfig testFileReaderConfig) {

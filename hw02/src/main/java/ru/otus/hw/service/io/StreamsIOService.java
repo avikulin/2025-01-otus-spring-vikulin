@@ -27,10 +27,15 @@ public class StreamsIOService implements IOService {
                                                      System.lineSeparator();
 
     InputFormatter formatter;
+
     InputValidator inputValidator;
+
     TestConfig testConfig;
+
     PrintStream printStream;
+
     PrintStream errorStream;
+
     Scanner scanner;
 
 
@@ -102,7 +107,7 @@ public class StreamsIOService implements IOService {
                 var parsedValues = this.formatter.parseAnswers(rawValue);
                 this.inputValidator.checkIndexValues(min, max, parsedValues);
                 return parsedValues;
-            }catch (IncorrectAnswerException ex){
+            } catch (IncorrectAnswerException ex) {
                 String msg = String.format(ERROR_MSG_TEMPLATE, ex.getMessage());
                 log.error(msg);
                 this.printError(msg);

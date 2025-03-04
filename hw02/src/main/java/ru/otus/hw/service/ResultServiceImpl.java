@@ -11,11 +11,17 @@ import ru.otus.hw.service.io.contracts.IOService;
 @RequiredArgsConstructor
 public class ResultServiceImpl implements ResultService {
     private static final String MSG_EMPTY_STRING = "";
+
     private static final String MSG_RESULTS_HEADER = "[ Test results ]";
+
     private static final String TEMPLATE_STUDENT_INFO = "Student: %s";
+
     private static final String TEMPLATE_ANSWERED_QUESTIONS_COUNT = "Answered questions count: %d";
+
     private static final String TEMPLATE_RIGHT_ANSWERS_COUNT = "Right answers count: %d";
+
     private static final String MSG_CONGRATULATIONS = "Congratulations! You have passed the test!";
+
     private static final String MSG_TEST_FAILURE = "Sorry. You have failed the test.";
 
     private final TestConfig testConfig;

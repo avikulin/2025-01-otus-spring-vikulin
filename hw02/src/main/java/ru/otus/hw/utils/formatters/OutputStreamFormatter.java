@@ -14,10 +14,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class OutputStreamFormatter implements OutputFormatter {
     private static final String MSG_QUESTION_TEMPLATE = "Question: %s";
+
     private static final String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #%d : %s";
+
     private static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
     private final IOService ioService;
+
     private final QuestionValidator questionValidator;
 
     @Override
