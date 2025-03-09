@@ -1,0 +1,18 @@
+spring:
+  messages:
+    baseName: messages
+    encoding: UTF-8
+    # Не дает свалиться в системную локаль если не найден файл для переданной в MessageSource
+    # Если false то будут браться сообщения из дефолтного файла, если true, то из файла соответствующего системной локали
+    fallbackToSystemLocale: false
+
+opencsv:
+  settings:
+    column-separation-symbol: ";"
+    number-of-rows-skipped: 1
+    test-file-name: "questions.csv"
+
+test:
+  locale: en-US
+  right-answers-count-to-pass: 3
+  max-number-of-input-data-attempts: 3

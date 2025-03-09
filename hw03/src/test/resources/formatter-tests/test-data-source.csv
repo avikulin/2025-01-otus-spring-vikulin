@@ -1,0 +1,21 @@
+Name, Value, Expected
+No extra characters in output;"";"\n"
+Char-to-char equality between input & output;"AaBbCc01233210";"AaBbCc01233210\n"
+Non-trailing left spaces of input string;"   AaBbCc01233210";"   AaBbCc01233210\n"
+Non-trailing right spaces;"AaBbCc01233210   ";"AaBbCc01233210   \n"
+Keeping spaces inside input string;"AaBbCc   01233210";"AaBbCc   01233210\n"
+Correct output of new-line;"
+
+
+AaBbCc01233210
+
+
+";"\n\n\nAaBbCc01233210\n\n\n\n"
+Correct output of new-line between other letters;"AaBbCc
+
+
+01233210";"AaBbCc\n\n\n01233210\n"
+Correct output of tabulation;"\tAaBbCc01233210\t";"\tAaBbCc01233210\t\n"
+Correct output of tabulation between other letters;"AaBbCc\t\t\t01233210";"AaBbCc\t\t\t01233210\n"
+Correct output of non-letter & non-digit symbols;"()<>/.,?!#@%^&*{}[]|";"()<>/.,?!#@%^&*{}[]|\n"
+Correct output on unicode letters;"← → ↔ ↑ ↓ ↕ ↖ ↗ ↘ ↙ ⤡ ⤢";"← → ↔ ↑ ↓ ↕ ↖ ↗ ↘ ↙ ⤡ ⤢\n"
