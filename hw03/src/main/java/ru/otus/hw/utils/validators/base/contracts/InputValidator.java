@@ -1,4 +1,4 @@
-package ru.otus.hw.utils.validators.contract;
+package ru.otus.hw.utils.validators.base.contracts;
 
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 

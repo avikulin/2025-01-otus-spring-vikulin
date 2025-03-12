@@ -1,13 +1,12 @@
-package ru.otus.hw.utils.formatters;
+package ru.otus.hw.utils.formatters.base;
 
 import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
-import ru.otus.hw.utils.formatters.contracts.InputFormatter;
+import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,16 +28,19 @@ public class InputStreamFormatter implements InputFormatter {
     /**
      * Служебный конструктор, который позволяет установить
      * шаблоны основных сообщений об ошибках.
-     * @param errMsgIncorrectContent
-     * @param errMsgEmptyInputString
+     * @param errMsgIncorrectContent    Текст сообщения при вводе некорректного содержимого
+     * @param errMsgEmptyInputString    Текст сообщения при вводе пустой/незначащей строки
      */
     protected InputStreamFormatter(String errMsgIncorrectContent, String errMsgEmptyInputString) {
         this.errMsgIncorrectContent = errMsgIncorrectContent;
         this.errMsgEmptyInputString = errMsgEmptyInputString;
     }
 
+    /**
+     * Открытый конструктор для всеобщего использования
+     */
     public InputStreamFormatter() {
-        this(MSG_EMPTY_INPUT_STRING_ERROR, MSG_EMPTY_INPUT_STRING_ERROR);
+        this(TEMPLATE_INCORRECT_CONTENT_ERROR, MSG_EMPTY_INPUT_STRING_ERROR);
     }
 
     /**

@@ -1,6 +1,8 @@
 package ru.otus.hw.service;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.dao.contracts.QuestionDao;
@@ -11,52 +13,49 @@ import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.contracts.TestService;
 import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
-import ru.otus.hw.utils.formatters.contracts.OutputFormatter;
-import ru.otus.hw.utils.validators.contract.AnswerValidator;
-import ru.otus.hw.utils.validators.contract.QuestionValidator;
+import ru.otus.hw.utils.formatters.localized.contracts.LocalizedOutputFormatter;
+import ru.otus.hw.utils.validators.localized.contracts.LocalizedAnswerValidator;
+import ru.otus.hw.utils.validators.localized.contracts.LocalizedQuestionValidator;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestServiceImpl implements TestService {
-    private static final String FREE_ANSWER_PROMPT = "Enter answer in a free form \\> ";
+    static String MSG_CODE_FREE_ANSWER_PROMPT = "test-service.msg.prompt.free-answer";
 
-    private static final String OPTION_IDX_ANSWER_PROMPT = "Enter index (integer number) of correct " +
-                                                            "answers you choose, " +
-                                                           "separated by commas of whitespaces " +
-                                                           "(in case of multi-variant answer) \\> ";
+    static String MSG_CODE_OPTION_IDX_ANSWER_PROMPT = "test-service.msg.prompt.fixed-index-answer";
 
-    private static final String USER_INVITE_PROMPT = "Please answer the questions below%n";
+    static String MSG_CODE_USER_INVITE_PROMPT = "test-service.msg.prompt.user-invite";
 
-    private static final String CANT_OBTAIN_THE_ANSWER_ERROR = "Can't obtain the suitable answer from user " +
-                                                               "(max. attempts exceeded)." + System.lineSeparator();
+    static String MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR = "test-service.error.cant-obtain-answer";
 
-    private final LocalizedIOService ioService;
+    QuestionDao questionDao;
 
-    private final QuestionDao questionDao;
+    LocalizedIOService localizedIoService;
 
-    private final OutputFormatter outputFormatter;
+    LocalizedOutputFormatter localizedOutputFormatter;
 
-    private final AnswerValidator answerValidator;
+    LocalizedAnswerValidator localizedAnswerValidator;
 
-    private final QuestionValidator questionValidator;
+    LocalizedQuestionValidator localizedQuestionValidator;
 
-    private boolean getAndCheckUserAnswer(Question question, IOService ioService) {
-        if (questionValidator.checkForUserFreeOption(question)) {
-            ioService.readStringWithPrompt(FREE_ANSWER_PROMPT);
+    private boolean getAndCheckUserAnswer(Question question, LocalizedIOService localizedIoService) {
+        if (localizedQuestionValidator.checkForUserFreeOption(question)) {
+            localizedIoService.readStringWithPromptLocalized(MSG_CODE_FREE_ANSWER_PROMPT);
             return true; // ответы в свободной форме не проверяются валидатором
         } else {
             var upperIdx = question.answers().size();
             var result = false;
             try {
-                var answer = ioService.readIntForRangeWithPrompt(1, upperIdx,
-                                                                    OPTION_IDX_ANSWER_PROMPT,
-                                                                    CANT_OBTAIN_THE_ANSWER_ERROR
+                var answer = localizedIoService.readIntForRangeWithPromptLocalized(1, upperIdx,
+                        MSG_CODE_OPTION_IDX_ANSWER_PROMPT,
+                        MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR
                 );
-                result = answerValidator.checkAnswer(question, answer);
+                result = localizedAnswerValidator.checkAnswer(question, answer);
             } catch (IncorrectAnswerException e) {
                 log.error(e.getMessage());
-                this.ioService.printError(e.getMessage());
+                this.localizedIoService.printError(e.getMessage());
                 result = false;
             }
             return result;
@@ -67,11 +66,11 @@ public class TestServiceImpl implements TestService {
     public TestResult executeTestFor(Student student) {
         var questions = questionDao.findAll();
         var testResult = new TestResult(student);
-        ioService.printEmptyLine();
-        ioService.printFormattedLine(USER_INVITE_PROMPT);
+        localizedIoService.printEmptyLine();
+        localizedIoService.printFormattedLineLocalized(MSG_CODE_USER_INVITE_PROMPT);
         for (var question: questions) {
-            outputFormatter.questionToStream(question);
-            var isAnswerValid = this.getAndCheckUserAnswer(question, ioService);
+            localizedOutputFormatter.questionToStream(question);
+            var isAnswerValid = this.getAndCheckUserAnswer(question, localizedIoService);
             testResult.applyAnswer(question, isAnswerValid);
         }
         return testResult;

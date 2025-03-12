@@ -4,17 +4,21 @@ import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.config.contracts.TestConfiguration;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.utils.formatters.contracts.InputFormatter;
-import ru.otus.hw.utils.validators.contract.InputValidator;
+import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
+import ru.otus.hw.utils.validators.base.contracts.InputValidator;
 
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 @Slf4j
@@ -48,7 +52,7 @@ public class StreamsIOService implements IOService {
 
     /**
      * Служебный закрытый конструктор, который используется для простановки
-     * служебного поля <inputErrorMsgTemplate<>
+     * служебного поля <inputErrorMsgTemplate<
      * @param printStream               Ссылка на поток вывода консоли (stdout или заменитель)
      * @param errorStream               Ссылка на поток вывода ошибок (stderr или заменитель)
      * @param inputStream               Ссылка на поток ввода (stdin или заменитель)
@@ -66,24 +70,34 @@ public class StreamsIOService implements IOService {
                                TestConfiguration testConfiguration,
                                String errMsgIncorrectContent,
                                String errMsgTryAgain) {
+        Objects.requireNonNull(printStream);
+        Objects.requireNonNull(errorStream);
+        Objects.requireNonNull(inputStream);
+        Objects.requireNonNull(formatter);
+        Objects.requireNonNull(inputValidator);
+        Objects.requireNonNull(testConfiguration);
+        Validate.notBlank(errMsgIncorrectContent);
+        Validate.notBlank(errMsgTryAgain);
+
         this.formatter = formatter;
         this.inputValidator = inputValidator;
         this.testConfiguration = testConfiguration;
         this.printStream = printStream;
         this.errorStream = errorStream;
         this.scanner = new Scanner(inputStream);
-        this.inputErrorMsgTemplate = System.lineSeparator() + errMsgIncorrectContent + "%s." +
+        this.inputErrorMsgTemplate = System.lineSeparator() + errMsgIncorrectContent + "." +
                                      System.lineSeparator() + errMsgTryAgain + System.lineSeparator();
     }
 
     /**
      * Основной конструктор для публичного использования
      */
+    @Autowired
     public StreamsIOService(@Value("#{T(System).out}") PrintStream printStream,
                             @Value("#{T(System).err}") PrintStream errorStream,
                             @Value("#{T(System).in}") InputStream inputStream,
-                            InputFormatter formatter,
-                            InputValidator inputValidator,
+                            @Qualifier("inputStreamFormatter") InputFormatter formatter,
+                            @Qualifier("inputValidatorImpl") InputValidator inputValidator,
                             TestConfiguration testConfiguration) {
         this(printStream, errorStream, inputStream,
              formatter, inputValidator, testConfiguration,

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.FilterType;
 @ComponentScan(basePackages = {"ru.otus.hw.utils.formatters"},
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX,
-                        pattern = "ru.otus.hw.utils.formatters.OutputStreamFormatter")
+                        pattern = "ru.otus.hw.utils.formatters.base.OutputStreamFormatter")
         }
 )
 public class FormattersContextConfiguration {}

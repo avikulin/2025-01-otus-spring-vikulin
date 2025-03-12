@@ -14,9 +14,9 @@ import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.service.contracts.TestService;
 import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.utils.formatters.OutputStreamFormatter;
-import ru.otus.hw.utils.validators.contract.AnswerValidator;
-import ru.otus.hw.utils.validators.contract.QuestionValidator;
+import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
+import ru.otus.hw.utils.validators.base.contracts.AnswerValidator;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import java.util.List;
 

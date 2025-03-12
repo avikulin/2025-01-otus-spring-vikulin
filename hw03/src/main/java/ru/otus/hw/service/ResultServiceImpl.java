@@ -1,45 +1,48 @@
 package ru.otus.hw.service;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.config.contracts.TestConfiguration;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.service.contracts.ResultService;
-import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ResultServiceImpl implements ResultService {
-    private static final String MSG_EMPTY_STRING = "";
+    static String MSG_EMPTY_STRING = "";
 
-    private static final String MSG_RESULTS_HEADER = "[ Test results ]";
+    static String MSG_CODE_RESULTS_HEADER = "result-service.msg.result-header";
 
-    private static final String TEMPLATE_STUDENT_INFO = "Student: %s";
+    static String MSG_CODE_TEMPLATE_STUDENT_INFO = "result-service.msg.student-info";
 
-    private static final String TEMPLATE_ANSWERED_QUESTIONS_COUNT = "Answered questions count: %d";
+    static String MSG_CODE_TEMPLATE_ANSWERED_QUESTIONS_COUNT = "result-service.msg.answered-questions-count";
 
-    private static final String TEMPLATE_RIGHT_ANSWERS_COUNT = "Right answers count: %d";
+    static String MSG_CODE_TEMPLATE_RIGHT_ANSWERS_COUNT = "result-service.msg.right-answers-count";
 
-    private static final String MSG_CONGRATULATIONS = "Congratulations! You have passed the test!";
+    static String MSG_CODE_MSG_CONGRATULATIONS = "result-service.msg.congratulations";
 
-    private static final String MSG_TEST_FAILURE = "Sorry. You have failed the test.";
+    static String MSG_CODE_MSG_TEST_FAILURE = "result-service.msg.test-failure";
 
-    private final TestConfiguration testConfiguration;
+    TestConfiguration testConfiguration;
 
-    private final IOService ioService;
+    LocalizedIOService localizedIoService;
 
     @Override
     public void showResult(TestResult testResult) {
-        ioService.printLine(MSG_EMPTY_STRING);
-        ioService.printLine(MSG_RESULTS_HEADER);
-        ioService.printFormattedLine(TEMPLATE_STUDENT_INFO, testResult.getStudent().getFullName());
-        ioService.printFormattedLine(TEMPLATE_ANSWERED_QUESTIONS_COUNT, testResult.getAnsweredQuestions().size());
-        ioService.printFormattedLine(TEMPLATE_RIGHT_ANSWERS_COUNT, testResult.getRightAnswersCount());
+        localizedIoService.printLine(MSG_EMPTY_STRING);
+        localizedIoService.printLineLocalized(MSG_CODE_RESULTS_HEADER);
+        localizedIoService.printFormattedLineLocalized(MSG_CODE_TEMPLATE_STUDENT_INFO, testResult.getStudent().getFullName());
+        localizedIoService.printFormattedLineLocalized(MSG_CODE_TEMPLATE_ANSWERED_QUESTIONS_COUNT, testResult.getAnsweredQuestions().size());
+        localizedIoService.printFormattedLineLocalized(MSG_CODE_TEMPLATE_RIGHT_ANSWERS_COUNT, testResult.getRightAnswersCount());
 
         if (testResult.getRightAnswersCount() >= testConfiguration.getRightAnswersCountToPass()) {
-            ioService.printLine(MSG_CONGRATULATIONS);
+            localizedIoService.printLineLocalized(MSG_CODE_MSG_CONGRATULATIONS);
             return;
         }
-        ioService.printLine(MSG_TEST_FAILURE);
+        localizedIoService.printLineLocalized(MSG_CODE_MSG_TEST_FAILURE);
     }
 }

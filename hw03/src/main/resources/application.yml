@@ -16,3 +16,6 @@ test:
   locale: en-US
   right-answers-count-to-pass: 3
   max-number-of-input-data-attempts: 3
+
+logging:
+  config: classpath:logback-spring.xml

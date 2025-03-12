@@ -10,8 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
 import ru.otus.hw.utils.formatters.providers.OutputStreamFormatterArgsProvider;
-import ru.otus.hw.utils.validators.contract.QuestionValidator;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import static org.mockito.Mockito.*;
 

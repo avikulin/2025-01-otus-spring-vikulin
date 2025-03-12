@@ -1,4 +1,4 @@
-package ru.otus.hw.utils.formatters.contracts;
+package ru.otus.hw.utils.formatters.base.contracts;
 
 import ru.otus.hw.domain.Question;
 

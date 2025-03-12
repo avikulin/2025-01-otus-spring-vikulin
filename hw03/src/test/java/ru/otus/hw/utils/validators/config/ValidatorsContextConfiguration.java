@@ -4,7 +4,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import ru.otus.hw.config.CsvBeanConfig;
-import ru.otus.hw.utils.formatters.OutputStreamFormatter;
+import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
 
 @Configuration
 @ComponentScan(basePackages = {"ru.otus.hw.utils.formatters",

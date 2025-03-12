@@ -1,6 +1,8 @@
 package ru.otus.hw.service;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.exceptions.QuestionReadException;
@@ -9,27 +11,26 @@ import ru.otus.hw.service.contracts.ResultService;
 import ru.otus.hw.service.contracts.StudentService;
 import ru.otus.hw.service.contracts.TestRunnerService;
 import ru.otus.hw.service.contracts.TestService;
-import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestRunnerServiceImpl implements TestRunnerService {
-    private static final String MSG_QUESTION_READ_EXCEPTION  = "The internal error appeared during the load " +
-                                                               "of the test configuration file with question";
+    static String MSG_CODE_QUESTION_READ_EXCEPTION = "test-runner-service.error.question-read";
 
-    private static final String MSG_QUESTION_STATE_EXCEPTION = "The incorrect question found inside " +
-                                                               "the test configuration file";
+    static String MSG_CODE_QUESTION_STATE_EXCEPTION = "test-runner-service.error.question-state";
 
-    private static final String MSG_UNKNOWN_ERROR = "Unknown error occurred. See the log file for details";
+    static String MSG_CODE_UNKNOWN_ERROR = "test-runner-service.error.unknown";
 
-    private final TestService testService;
+    TestService testService;
 
-    private final StudentService studentService;
+    StudentService studentService;
 
-    private final ResultService resultService;
+    ResultService resultService;
 
-    private final IOService ioService;
+    LocalizedIOService localizedIoService;
 
     @Override
     public void run() {
@@ -39,17 +40,17 @@ public class TestRunnerServiceImpl implements TestRunnerService {
             var testResult = testService.executeTestFor(student);
             resultService.showResult(testResult);
         } catch (QuestionReadException ex) {
-            var msg = String.format(MSG_QUESTION_READ_EXCEPTION + ": %s", ex.getMessage());
+            var msg = String.format(MSG_CODE_QUESTION_READ_EXCEPTION + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_QUESTION_READ_EXCEPTION + ".");
+            localizedIoService.printErrorLocalized(MSG_CODE_QUESTION_READ_EXCEPTION);
         } catch (QuestionStateException ex) {
-            var msg = String.format(MSG_QUESTION_STATE_EXCEPTION + ": %s", ex.getMessage());
+            var msg = String.format(MSG_CODE_QUESTION_STATE_EXCEPTION + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_QUESTION_STATE_EXCEPTION + ".");
+            localizedIoService.printErrorLocalized(MSG_CODE_QUESTION_STATE_EXCEPTION);
         } catch (Throwable ex) {
-            var msg = String.format(MSG_UNKNOWN_ERROR + ": %s", ex.getMessage());
+            var msg = String.format(MSG_CODE_UNKNOWN_ERROR + ": %s", ex.getMessage());
             log.error(msg, ex);
-            ioService.printError(MSG_UNKNOWN_ERROR + ".");
+            localizedIoService.printErrorLocalized(MSG_CODE_UNKNOWN_ERROR);
         }
         log.info("Examination finished");
     }

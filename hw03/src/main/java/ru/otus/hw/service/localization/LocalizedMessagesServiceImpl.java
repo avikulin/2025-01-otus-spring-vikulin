@@ -1,4 +1,4 @@
-package ru.otus.hw.service;
+package ru.otus.hw.service.localization;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.config.contracts.LocaleConfig;
-import ru.otus.hw.service.contracts.LocalizedMessagesService;
+import ru.otus.hw.service.localization.contracts.LocalizedMessagesService;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -26,7 +26,7 @@ public class LocalizedMessagesServiceImpl implements LocalizedMessagesService {
 
     @Override
     public String getMessage(String code, Object... args) {
-        Validate.notEmpty(code, "Code cannot be empty");
+        Validate.notBlank(code, "Code cannot be empty");
         Validate.notNull(args, "Arguments must not be null");
         Locale locale = localeConfig.getLocale();
         Objects.requireNonNull(locale, "The locale object must not be null");

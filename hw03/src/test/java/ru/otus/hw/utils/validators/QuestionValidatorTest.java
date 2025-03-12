@@ -11,7 +11,7 @@ import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionStateException;
 import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
-import ru.otus.hw.utils.validators.contract.QuestionValidator;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import java.util.ArrayList;
 import java.util.List;

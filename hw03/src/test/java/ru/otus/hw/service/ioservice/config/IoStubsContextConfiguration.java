@@ -14,11 +14,11 @@ import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.ioservice.stub.FakeStdErr;
 import ru.otus.hw.service.ioservice.stub.FakeStdIn;
 import ru.otus.hw.service.ioservice.stub.FakeStdOut;
-import ru.otus.hw.utils.formatters.OutputStreamFormatter;
-import ru.otus.hw.utils.formatters.contracts.InputFormatter;
-import ru.otus.hw.utils.validators.contract.AnswerValidator;
-import ru.otus.hw.utils.validators.contract.InputValidator;
-import ru.otus.hw.utils.validators.contract.QuestionValidator;
+import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
+import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
+import ru.otus.hw.utils.validators.base.contracts.AnswerValidator;
+import ru.otus.hw.utils.validators.base.contracts.InputValidator;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 
 @Configuration

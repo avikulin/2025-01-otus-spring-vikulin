@@ -9,7 +9,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
-import ru.otus.hw.utils.validators.contract.InputValidator;
+import ru.otus.hw.utils.validators.base.contracts.InputValidator;
 
 import java.util.List;
 
