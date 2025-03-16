@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -15,11 +16,12 @@ import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 import java.util.Objects;
 
 @Component
+@Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OutputStreamFormatter implements OutputFormatter {
-    static String MSG_QUESTION_TEMPLATE = "Question: %s";
+public class DefaultOutputStreamFormatter implements OutputFormatter {
+    static String MSG_QUESTION_TEMPLATE = "Question: {0}";
 
-    static String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #%d : %s";
+    static String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #{0} : {1}";
 
     static String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
@@ -46,9 +48,9 @@ public class OutputStreamFormatter implements OutputFormatter {
      * @param msgFreeUserAnswerTemplate Текст запроса свободного ответа у пользователя
      * @param msgErrNullQuestion    Текст ошибки, если ссылка на объект вопроса не задана
      */
-    protected OutputStreamFormatter(IOService ioService, QuestionValidator questionValidator,
-                                    String msgQuestionTemplate, String msgFixedAnswerTemplate,
-                                    String msgFreeUserAnswerTemplate, String msgErrNullQuestion) {
+    protected DefaultOutputStreamFormatter(IOService ioService, QuestionValidator questionValidator,
+                                           String msgQuestionTemplate, String msgFixedAnswerTemplate,
+                                           String msgFreeUserAnswerTemplate, String msgErrNullQuestion) {
         Objects.requireNonNull(ioService);
         Objects.requireNonNull(questionValidator);
         Validate.notBlank(msgQuestionTemplate);
@@ -71,8 +73,7 @@ public class OutputStreamFormatter implements OutputFormatter {
      * @param questionValidator Ссылка на валидатор вопросов
      */
     @Autowired
-    public OutputStreamFormatter(@Qualifier("streamsIOService") IOService ioService,
-                                 @Qualifier("questionValidatorImpl") QuestionValidator questionValidator) {
+    public DefaultOutputStreamFormatter(IOService ioService, QuestionValidator questionValidator) {
         this(ioService, questionValidator,
              MSG_QUESTION_TEMPLATE, MSG_FIXED_ANSWER_TEMPLATE,
              MSG_FREE_USER_ANSWER_TEMPLATE, MSG_NULL_QUESTION_ERROR);

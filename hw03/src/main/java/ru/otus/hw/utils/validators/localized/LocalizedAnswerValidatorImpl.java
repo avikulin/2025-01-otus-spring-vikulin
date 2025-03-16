@@ -2,23 +2,21 @@ package ru.otus.hw.utils.validators.localized;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.service.localization.contracts.LocalizedMessagesService;
-import ru.otus.hw.utils.validators.base.AnswerValidatorImpl;
+import ru.otus.hw.utils.validators.base.DefaultAnswerValidatorImpl;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 import ru.otus.hw.utils.validators.localized.contracts.LocalizedAnswerValidator;
-import ru.otus.hw.utils.validators.localized.contracts.LocalizedQuestionValidator;
 
 @Component
+@Profile("localized")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class LocalizedAnswerValidatorImpl extends AnswerValidatorImpl implements LocalizedAnswerValidator{
-    static String MSG_CODE_ERR_QUESTION_NULL_REFERENCE = "answer-validator.error.null-reference";
+public class LocalizedAnswerValidatorImpl extends DefaultAnswerValidatorImpl implements LocalizedAnswerValidator{
     static String MSG_CODE_ERR_EMPTY_ANSWER_COLLECTION = "answer-validator.error.empty-answer";
 
-    protected LocalizedAnswerValidatorImpl(LocalizedQuestionValidator questionValidator,
+    protected LocalizedAnswerValidatorImpl(QuestionValidator questionValidator,
                                            LocalizedMessagesService localizedMessagesService) {
-        super(questionValidator,
-              localizedMessagesService.getMessage(MSG_CODE_ERR_QUESTION_NULL_REFERENCE),
-              localizedMessagesService.getMessage(MSG_CODE_ERR_EMPTY_ANSWER_COLLECTION)
-        );
+        super(questionValidator, localizedMessagesService.getMessage(MSG_CODE_ERR_EMPTY_ANSWER_COLLECTION));
     }
 }

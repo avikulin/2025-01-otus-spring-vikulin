@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.domain.Question;
@@ -11,14 +12,14 @@ import ru.otus.hw.domain.Student;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.contracts.TestService;
-import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.utils.formatters.localized.contracts.LocalizedOutputFormatter;
+import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 import ru.otus.hw.utils.validators.localized.contracts.LocalizedAnswerValidator;
-import ru.otus.hw.utils.validators.localized.contracts.LocalizedQuestionValidator;
 
 @Slf4j
 @Service
+@Profile("localized")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestServiceImpl implements TestService {
@@ -30,6 +31,8 @@ public class TestServiceImpl implements TestService {
 
     static String MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR = "test-service.error.cant-obtain-answer";
 
+    static String MSG_CODE_UNEXPECTED_EXCEPTION = "test-runner-service.error.unknown";
+
     QuestionDao questionDao;
 
     LocalizedIOService localizedIoService;
@@ -38,10 +41,10 @@ public class TestServiceImpl implements TestService {
 
     LocalizedAnswerValidator localizedAnswerValidator;
 
-    LocalizedQuestionValidator localizedQuestionValidator;
+    QuestionValidator questionValidator;
 
     private boolean getAndCheckUserAnswer(Question question, LocalizedIOService localizedIoService) {
-        if (localizedQuestionValidator.checkForUserFreeOption(question)) {
+        if (questionValidator.checkForUserFreeOption(question)) {
             localizedIoService.readStringWithPromptLocalized(MSG_CODE_FREE_ANSWER_PROMPT);
             return true; // ответы в свободной форме не проверяются валидатором
         } else {
@@ -53,7 +56,14 @@ public class TestServiceImpl implements TestService {
                         MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR
                 );
                 result = localizedAnswerValidator.checkAnswer(question, answer);
-            } catch (IncorrectAnswerException e) {
+            } catch (NullPointerException npe){
+                // запись в системный журнал на английском
+                log.error("Nul-pointer exception occurred: {}", npe.getMessage());
+
+                // вывод в UI локализованного сообщения
+                this.localizedIoService.printError(MSG_CODE_UNEXPECTED_EXCEPTION);
+            }
+            catch (IncorrectAnswerException e) {
                 log.error(e.getMessage());
                 this.localizedIoService.printError(e.getMessage());
                 result = false;
@@ -67,7 +77,7 @@ public class TestServiceImpl implements TestService {
         var questions = questionDao.findAll();
         var testResult = new TestResult(student);
         localizedIoService.printEmptyLine();
-        localizedIoService.printFormattedLineLocalized(MSG_CODE_USER_INVITE_PROMPT);
+        localizedIoService.printLineLocalized(MSG_CODE_USER_INVITE_PROMPT);
         for (var question: questions) {
             localizedOutputFormatter.questionToStream(question);
             var isAnswerValid = this.getAndCheckUserAnswer(question, localizedIoService);

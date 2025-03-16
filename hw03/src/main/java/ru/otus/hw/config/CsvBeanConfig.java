@@ -3,25 +3,27 @@ package ru.otus.hw.config;
 import com.opencsv.bean.ColumnPositionMappingStrategyBuilder;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import ru.otus.hw.config.contracts.TestFileReaderConfiguration;
+import ru.otus.hw.config.contracts.TestFileReaderPropertiesProvider;
 import ru.otus.hw.dao.dto.QuestionDto;
 import ru.otus.hw.exceptions.QuestionReadException;
 
 import java.io.InputStreamReader;
 
 @Configuration
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CsvBeanConfig {
-    private static final String MSG_TEMPLATE_RESOURCE_READ_ERROR = "Unreachable classpath resource: %s";
+    static String MSG_TEMPLATE_RESOURCE_READ_ERROR = "Unreachable classpath resource: %s";
 
-    private final TestFileReaderConfiguration testFileReaderCfg;
-
-    public CsvBeanConfig(TestFileReaderConfiguration testFileReaderConfiguration) {
-        this.testFileReaderCfg = testFileReaderConfiguration;
-    }
+    TestFileReaderPropertiesProvider testFileReaderCfg;
 
     private CsvToBeanBuilder<QuestionDto> getBuilder(InputStreamReader resourceStream) {
         var beanBuilder = new CsvToBeanBuilder<QuestionDto>(resourceStream);

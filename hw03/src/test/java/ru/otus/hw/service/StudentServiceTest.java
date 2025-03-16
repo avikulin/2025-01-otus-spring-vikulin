@@ -11,7 +11,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.service.contracts.StudentService;
 import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.service.ioservice.config.IoStubsContextConfiguration;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
+import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.service.ioservice.stub.FakeStdIn;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DisplayName("Student determination behaviour check")
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:/test-application.yml")
-@ContextConfiguration(classes = IoStubsContextConfiguration.class)
+@ContextConfiguration(classes = LocalizedIoStubsConfig.class)
 class StudentServiceTest {
     private static final String STUDENT_NAME = "name";
     private static final String STUDENT_SURNAME = "surname";
 
     @Autowired
     @Qualifier("mockedIO")
-    IOService mockIOService;
+    LocalizedIOService mockIOService;
 
     @Autowired
     FakeStdIn fakeStdIn;

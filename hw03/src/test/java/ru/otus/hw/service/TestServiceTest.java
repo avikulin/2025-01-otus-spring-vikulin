@@ -13,10 +13,10 @@ import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
 import ru.otus.hw.service.contracts.TestService;
-import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
-import ru.otus.hw.utils.validators.base.contracts.AnswerValidator;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
+import ru.otus.hw.utils.formatters.localized.LocalizedOutputStreamFormatterImpl;
 import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
+import ru.otus.hw.utils.validators.localized.contracts.LocalizedAnswerValidator;
 
 import java.util.List;
 
@@ -43,22 +43,22 @@ class TestServiceTest {
     private static final String STUDENT_SURNAME = "surname";
 
     @Mock
-    IOService mockedIoService;
+    LocalizedIOService mockedIoService;
 
     @Mock
     QuestionDao mockedQuestionDao;
 
     @Mock(strictness = Mock.Strictness.LENIENT)
-    AnswerValidator mockedPositiveAnswerValidator;
+    LocalizedAnswerValidator mockedPositiveAnswerValidator;
 
     @Mock(strictness = Mock.Strictness.LENIENT)
-    AnswerValidator mockedNegativeAnswerValidator;
+    LocalizedAnswerValidator mockedNegativeAnswerValidator;
 
     @Mock
     QuestionValidator mockedQuestionValidator;
 
     @Mock
-    OutputStreamFormatter mockedOutputStreamFormatter;
+    LocalizedOutputStreamFormatterImpl mockedOutputStreamFormatter;
 
     @BeforeEach
     void baseSetUp() {
@@ -102,9 +102,9 @@ class TestServiceTest {
         );
     }
 
-    private TestService setupInstance(AnswerValidator answerValidator) {
-        var realService =  new TestServiceImpl(mockedIoService,
-                                               mockedQuestionDao,
+    private TestService setupInstance(LocalizedAnswerValidator answerValidator) {
+        var realService =  new TestServiceImpl(mockedQuestionDao,
+                                               mockedIoService,
                                                mockedOutputStreamFormatter,
                                                answerValidator,
                                                mockedQuestionValidator
@@ -112,7 +112,7 @@ class TestServiceTest {
         return Mockito.spy(realService);
     }
 
-    void baseTestExecutionFlow(AnswerValidator answerValidator, int expected) {
+    void baseTestExecutionFlow(LocalizedAnswerValidator answerValidator, int expected) {
         // секция выполнения
         var service = setupInstance(answerValidator);
         var student = new Student(STUDENT_NAME, STUDENT_SURNAME);

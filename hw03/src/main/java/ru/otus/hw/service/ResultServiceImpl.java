@@ -3,13 +3,15 @@ package ru.otus.hw.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.config.contracts.TestConfiguration;
+import ru.otus.hw.config.contracts.TestPropertiesProvider;
 import ru.otus.hw.domain.TestResult;
 import ru.otus.hw.service.contracts.ResultService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 @Service
+@Profile("localized")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ResultServiceImpl implements ResultService {
@@ -27,7 +29,7 @@ public class ResultServiceImpl implements ResultService {
 
     static String MSG_CODE_MSG_TEST_FAILURE = "result-service.msg.test-failure";
 
-    TestConfiguration testConfiguration;
+    TestPropertiesProvider testPropertiesProvider;
 
     LocalizedIOService localizedIoService;
 
@@ -39,7 +41,7 @@ public class ResultServiceImpl implements ResultService {
         localizedIoService.printFormattedLineLocalized(MSG_CODE_TEMPLATE_ANSWERED_QUESTIONS_COUNT, testResult.getAnsweredQuestions().size());
         localizedIoService.printFormattedLineLocalized(MSG_CODE_TEMPLATE_RIGHT_ANSWERS_COUNT, testResult.getRightAnswersCount());
 
-        if (testResult.getRightAnswersCount() >= testConfiguration.getRightAnswersCountToPass()) {
+        if (testResult.getRightAnswersCount() >= testPropertiesProvider.getRightAnswersCountToPass()) {
             localizedIoService.printLineLocalized(MSG_CODE_MSG_CONGRATULATIONS);
             return;
         }

@@ -4,22 +4,25 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class InputStreamFormatter implements InputFormatter {
-    private static final String ANSWER_SPLIT_REGEX = "[,]\\s*";
+public class DefaultInputStreamFormatter implements InputFormatter {
+    static String ANSWER_SPLIT_REGEX = "[,]\\s*";
 
-    private static final String TEMPLATE_INCORRECT_CONTENT_ERROR = "Not a digit value %s";
+    static String TEMPLATE_INCORRECT_CONTENT_ERROR = "Not a digit value {0}";
 
-    private static final String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
+    static String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
 
     String errMsgIncorrectContent;
     String errMsgEmptyInputString;
@@ -31,7 +34,7 @@ public class InputStreamFormatter implements InputFormatter {
      * @param errMsgIncorrectContent    Текст сообщения при вводе некорректного содержимого
      * @param errMsgEmptyInputString    Текст сообщения при вводе пустой/незначащей строки
      */
-    protected InputStreamFormatter(String errMsgIncorrectContent, String errMsgEmptyInputString) {
+    protected DefaultInputStreamFormatter(String errMsgIncorrectContent, String errMsgEmptyInputString) {
         this.errMsgIncorrectContent = errMsgIncorrectContent;
         this.errMsgEmptyInputString = errMsgEmptyInputString;
     }
@@ -39,7 +42,7 @@ public class InputStreamFormatter implements InputFormatter {
     /**
      * Открытый конструктор для всеобщего использования
      */
-    public InputStreamFormatter() {
+    public DefaultInputStreamFormatter() {
         this(TEMPLATE_INCORRECT_CONTENT_ERROR, MSG_EMPTY_INPUT_STRING_ERROR);
     }
 
@@ -60,11 +63,10 @@ public class InputStreamFormatter implements InputFormatter {
                                     .toList();
 
         if (!incorrectTokens.isEmpty()) {
-            String msg = String.format(this.errMsgIncorrectContent,
-                                        incorrectTokens.stream()
-                                                       .map(t -> "\"" + t + "\"")
-                                                       .collect(Collectors.joining(",","[ "," ]"))
-            );
+            var incorrectValue = incorrectTokens.stream()
+                    .map(t -> "\"" + t + "\"")
+                    .collect(Collectors.joining(",","[ "," ]"));
+            String msg = MessageFormat.format(this.errMsgIncorrectContent, incorrectValue);
             throw new IncorrectAnswerException(msg);
         }
         return Arrays.stream(answerTokens)

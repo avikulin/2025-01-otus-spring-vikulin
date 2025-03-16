@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.service.contracts.TestRunnerService;
 
@@ -15,6 +16,7 @@ import ru.otus.hw.service.contracts.TestRunnerService;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile("localized")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppRunnerServiceImpl implements CommandLineRunner {
     TestRunnerService testRunnerService;

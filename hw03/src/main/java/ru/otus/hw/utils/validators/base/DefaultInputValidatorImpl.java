@@ -3,22 +3,24 @@ package ru.otus.hw.utils.validators.base;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.Validate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.utils.validators.base.contracts.InputValidator;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
+@Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class InputValidatorImpl implements InputValidator {
-    static String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: " +
-                                                                         "from %d to %d";
+public class DefaultInputValidatorImpl implements InputValidator {
+    static String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: from {0} to {1}";
 
-    static String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ %s ]";
+    static String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ {0} ]";
 
     static String MSG_NULL_ANSWER_COLLECTION = "Input value object must be not-null";
 
@@ -27,8 +29,6 @@ public class InputValidatorImpl implements InputValidator {
     String msgErrTemplateExceedsTheValidRange;
 
     String msgErrTemplateDoubledVariant;
-
-    String msgErrNullAnswerCollection;
 
     String msgErrEmptyOptions;
 
@@ -39,17 +39,14 @@ public class InputValidatorImpl implements InputValidator {
      * @param msgErrTemplateDoubledVariant  Текст ошибки о вводе более одного уникального значения варианта.
      * @param msgErrEmptyOptions    Текст ошибки о вводе пустого/незначащего значения варианта.
      */
-    protected InputValidatorImpl(String msgErrTemplateExceedsTheValidRange,
-                                 String msgErrTemplateDoubledVariant,
-                                 String msgErrNullAnswerCollection,
-                                 String msgErrEmptyOptions) {
+    protected DefaultInputValidatorImpl(String msgErrTemplateExceedsTheValidRange,
+                                        String msgErrTemplateDoubledVariant,
+                                        String msgErrEmptyOptions) {
         Validate.notBlank(msgErrTemplateExceedsTheValidRange);
         Validate.notBlank(msgErrTemplateDoubledVariant);
-        Validate.notBlank(msgErrNullAnswerCollection);
         Validate.notBlank(msgErrEmptyOptions);
         this.msgErrTemplateExceedsTheValidRange = msgErrTemplateExceedsTheValidRange;
         this.msgErrTemplateDoubledVariant = msgErrTemplateDoubledVariant;
-        this.msgErrNullAnswerCollection = msgErrNullAnswerCollection;
         this.msgErrEmptyOptions = msgErrEmptyOptions;
 
     }
@@ -58,9 +55,8 @@ public class InputValidatorImpl implements InputValidator {
     /**
      * Публичный конструктор для всеобщего использования.
      */
-    public InputValidatorImpl() {
-        this(TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR, TEMPLATE_DOUBLED_VARIANT_ERROR,
-             MSG_NULL_ANSWER_COLLECTION, MSG_EMPTY_OPTIONS_ERROR);
+    public DefaultInputValidatorImpl() {
+        this(TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR, TEMPLATE_DOUBLED_VARIANT_ERROR, MSG_EMPTY_OPTIONS_ERROR);
     }
 
     /**
@@ -76,7 +72,7 @@ public class InputValidatorImpl implements InputValidator {
      */
     @Override
     public void checkIndexValues(int min, int max, List<Integer> answerIdx) throws IncorrectAnswerException {
-        Objects.requireNonNull(answerIdx, this.msgErrNullAnswerCollection);
+        Objects.requireNonNull(answerIdx, MSG_NULL_ANSWER_COLLECTION);
         if (answerIdx.isEmpty()) {
             throw new IncorrectAnswerException(this.msgErrEmptyOptions);
         }
@@ -85,19 +81,19 @@ public class InputValidatorImpl implements InputValidator {
     }
 
     private void checkUnboundValues(int min, int max, List<Integer> answerIdx) {
-        Objects.requireNonNull(answerIdx, this.msgErrNullAnswerCollection);
+        Objects.requireNonNull(answerIdx, MSG_NULL_ANSWER_COLLECTION);
         var countUnbound = answerIdx
                 .stream()
                 .filter(x -> x < min || x > max)
                 .count();
         if (countUnbound > 0) {
-            String msg = String.format(this.msgErrTemplateExceedsTheValidRange, min, max);
+            String msg = MessageFormat.format(this.msgErrTemplateExceedsTheValidRange, min, max);
             throw new IncorrectAnswerException(msg);
         }
     }
 
     private void checkDoubledOptions(List<Integer> answerIdx) {
-        Objects.requireNonNull(answerIdx, this.msgErrNullAnswerCollection);
+        Objects.requireNonNull(answerIdx, MSG_NULL_ANSWER_COLLECTION);
         var doubledOptions = answerIdx.stream()
                 .collect(
                         Collectors.toMap(k -> k, v -> 1, Integer::sum)
@@ -109,7 +105,7 @@ public class InputValidatorImpl implements InputValidator {
                 .toList();
 
         if (!doubledOptions.isEmpty()) {
-            String msg = String.format(this.msgErrTemplateDoubledVariant,
+            String msg = MessageFormat.format(this.msgErrTemplateDoubledVariant,
                     doubledOptions.stream()
                             .map(String::valueOf)
                             .collect(Collectors.joining(","))

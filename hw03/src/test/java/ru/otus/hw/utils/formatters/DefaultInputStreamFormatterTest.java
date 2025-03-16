@@ -6,9 +6,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.formatters.base.DefaultInputStreamFormatter;
 import ru.otus.hw.utils.formatters.config.FormattersContextConfiguration;
 import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
 
@@ -19,10 +23,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SpringBootTest(classes = {FormattersContextConfiguration.class})
 @DisplayName("Input data formatting behaviour check")
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = FormattersContextConfiguration.class)
-class InputStreamFormatterTest {
+@Import(DefaultInputStreamFormatter.class)
+@ActiveProfiles({"test","native"})
+class DefaultInputStreamFormatterTest {
     @Autowired
     InputFormatter formatter;
 

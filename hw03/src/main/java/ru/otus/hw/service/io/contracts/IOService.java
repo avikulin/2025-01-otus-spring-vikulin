@@ -11,6 +11,8 @@ public interface IOService {
 
     void printError(String err);
 
+    void printFormattedError(String s, Object ...args);
+
     void printEmptyLine();
 
     String readString();

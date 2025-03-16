@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    active:
+      - production
+      - localized
   messages:
     baseName: messages
     encoding: UTF-8
@@ -18,4 +22,4 @@ test:
   max-number-of-input-data-attempts: 3
 
 logging:
-  config: classpath:logback-spring.xml
+  config: classpath:/logback-spring.xml

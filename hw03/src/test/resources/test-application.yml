@@ -1,9 +1,16 @@
-configuration:
-  - opencsv:
-    - settings:
-      - column-separation-symbol: ";"
-      - skip-first-rows: 1
-  - test:
-    - right-answers-count-to-pass: 3
-    - filename: "absent.csv"
-    - max-number-of-input-data-attempts: 3
+spring:
+  messages:
+    baseName: messages
+    encoding: UTF-8
+    fallbackToSystemLocale: false
+
+opencsv:
+  settings:
+    column-separation-symbol: ";"
+    number-of-rows-skipped: 1
+    test-file-name: "absent.csv"
+
+test:
+  locale: en-US
+  right-answers-count-to-pass: 3
+  max-number-of-input-data-attempts: 3

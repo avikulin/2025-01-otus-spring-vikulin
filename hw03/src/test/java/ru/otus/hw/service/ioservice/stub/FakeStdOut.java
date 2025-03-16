@@ -1,6 +1,7 @@
 package ru.otus.hw.service.ioservice.stub;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.io.PrintStream;
  * Не поддерживает параллельное выполнение тестов!
  */
 @Component
+@Profile("test")
 @Scope("singleton")
 public class FakeStdOut implements DisposableBean {
     private final OutputStream fakeStdOut =  new ByteArrayOutputStream();

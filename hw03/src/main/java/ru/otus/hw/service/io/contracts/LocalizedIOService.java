@@ -5,6 +5,8 @@ import java.util.List;
 public interface LocalizedIOService extends IOService {
     void printErrorLocalized(String err);
 
+    void printFormattedErrorLocalized(String code, Object ...args);
+
     void printLineLocalized(String code);
 
     void printFormattedLineLocalized(String code, Object ...args);

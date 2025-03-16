@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
@@ -18,28 +19,25 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component
+@Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AnswerValidatorImpl implements AnswerValidator {
+public class DefaultAnswerValidatorImpl implements AnswerValidator {
     static String MSG_QUESTION_NULL_REFERENCE_ERROR = "Reference to the answer object must be non-null";
     static String MSG_EMPTY_ANSWER_COLLECTION_ERROR = "Empty answer content is incorrect";
 
     QuestionValidator questionValidator;
-    String msgErrQuestionIsNull;
     String msgErrEmptyAnswersCollection;
 
     /**
      * Закрытый конструктор для проставления шаблонов сообщений об ошибках.
      * @param questionValidator Ссылка на валидатор вопросов
-     * @param msgErrQuestionIsNull  Текст сообщения о пустой ссылке на вопрос
      * @param msgErrEmptyAnswersCollection  Текст сообщения о пустой коллекции ответов
      */
-    protected AnswerValidatorImpl(QuestionValidator questionValidator,
-                                  String msgErrQuestionIsNull, String msgErrEmptyAnswersCollection) {
+    protected DefaultAnswerValidatorImpl(QuestionValidator questionValidator,
+                                         String msgErrEmptyAnswersCollection) {
         Objects.requireNonNull(questionValidator);
         Validate.notBlank(msgErrEmptyAnswersCollection);
-        Validate.notBlank(msgErrQuestionIsNull);
         this.questionValidator = questionValidator;
-        this.msgErrQuestionIsNull = msgErrQuestionIsNull;
         this.msgErrEmptyAnswersCollection = msgErrEmptyAnswersCollection;
     }
 
@@ -48,8 +46,8 @@ public class AnswerValidatorImpl implements AnswerValidator {
      * @param questionValidator Ссылка на валидатор вопросов
      */
     @Autowired
-    public AnswerValidatorImpl(@Qualifier("questionValidatorImpl") QuestionValidator questionValidator) {
-        this(questionValidator, MSG_QUESTION_NULL_REFERENCE_ERROR, MSG_EMPTY_ANSWER_COLLECTION_ERROR);
+    public DefaultAnswerValidatorImpl(QuestionValidator questionValidator) {
+        this(questionValidator, MSG_EMPTY_ANSWER_COLLECTION_ERROR);
     }
 
     /**
@@ -62,7 +60,7 @@ public class AnswerValidatorImpl implements AnswerValidator {
      */
     @Override
     public boolean checkAnswer(Question question, List<Integer> answer)  throws IncorrectAnswerException {
-        Objects.requireNonNull(question, this.msgErrQuestionIsNull);
+        Objects.requireNonNull(question, MSG_QUESTION_NULL_REFERENCE_ERROR);
         if (CollectionUtils.isEmpty(answer)) {
             throw new IncorrectAnswerException(this.msgErrEmptyAnswersCollection);
         }

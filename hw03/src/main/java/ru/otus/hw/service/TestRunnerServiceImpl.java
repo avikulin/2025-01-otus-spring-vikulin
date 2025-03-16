@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.exceptions.QuestionReadException;
 import ru.otus.hw.exceptions.QuestionStateException;
@@ -15,6 +16,7 @@ import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 @Slf4j
 @Service
+@Profile("localized")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestRunnerServiceImpl implements TestRunnerService {

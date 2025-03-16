@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.otus.hw.config.contracts.TestConfiguration;
+import ru.otus.hw.config.contracts.TestPropertiesProvider;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
@@ -34,7 +34,7 @@ class ResultServiceTest {
 
 
     @Mock
-    TestConfiguration mockedTestConfiguration;
+    TestPropertiesProvider mockedTestPropertiesProvider;
 
     @Mock
     IOService mockedIoService;
@@ -44,7 +44,7 @@ class ResultServiceTest {
 
     @AfterEach
     public void cleanUp(){
-        reset(mockedTestConfiguration, mockedIoService);
+        reset(mockedTestPropertiesProvider, mockedIoService);
     }
 
     private void baseIoCheckUp(TestResult result, String testResultMessage) {
@@ -52,7 +52,7 @@ class ResultServiceTest {
         var questionCount = result.getRightAnswersCount();
         var rightAnswersCount = result.getRightAnswersCount();
 
-        InOrder orderedCalls = Mockito.inOrder(mockedIoService, mockedTestConfiguration);
+        InOrder orderedCalls = Mockito.inOrder(mockedIoService, mockedTestPropertiesProvider);
         orderedCalls.verify(mockedIoService, times(2)).printLine(anyString());
         orderedCalls.verify(mockedIoService).printFormattedLine(eq(TEMPLATE_STUDENT_INFO),eq(studentsFullName));
         orderedCalls.verify(mockedIoService).printFormattedLine(eq(TEMPLATE_ANSWERED_QUESTIONS_COUNT),eq(questionCount));
@@ -97,7 +97,7 @@ class ResultServiceTest {
         var sampleResult = sampleResultFactory();
 
         // настройка теста
-        when(mockedTestConfiguration.getRightAnswersCountToPass()).thenReturn(2);
+        when(mockedTestPropertiesProvider.getRightAnswersCountToPass()).thenReturn(2);
 
         // выполнение теста
         this.resultService.showResult(sampleResult);
@@ -113,7 +113,7 @@ class ResultServiceTest {
         var sampleResult = sampleResultFactory();
 
         // настройка теста
-        when(mockedTestConfiguration.getRightAnswersCountToPass()).thenReturn(22);
+        when(mockedTestPropertiesProvider.getRightAnswersCountToPass()).thenReturn(22);
 
         // выполнение теста
         this.resultService.showResult(sampleResult);

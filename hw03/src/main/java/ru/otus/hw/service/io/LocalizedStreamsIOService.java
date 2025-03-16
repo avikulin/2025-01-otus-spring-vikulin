@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.config.contracts.TestConfiguration;
+import ru.otus.hw.config.contracts.TestPropertiesProvider;
 import ru.otus.hw.service.localization.contracts.LocalizedMessagesService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.utils.formatters.localized.contracts.LocalizedInputFormatter;
@@ -17,8 +17,9 @@ import java.util.List;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LocalizedStreamsIOService extends StreamsIOService implements LocalizedIOService {
-    private static final String ERR_INCORRECT_CONTENT_CODE = "streams-io-service.error.incorrect-content";
-    private static final String ERR_TRY_AGAIN_CODE = "streams-io-service.error.try-again";
+    static String ERR_INCORRECT_CONTENT_CODE = "streams-io-service.error.incorrect-content";
+    static String ERR_TRY_AGAIN_CODE = "streams-io-service.error.try-again";
+    static String ERR_UNEXPECTED_CODE = "streams-io-service.error.unexpected";
 
     LocalizedMessagesService localizedMessagesService;
 
@@ -28,16 +29,17 @@ public class LocalizedStreamsIOService extends StreamsIOService implements Local
                             @Value("#{T(System).in}") InputStream inputStream,
                             LocalizedInputFormatter formatter,
                             LocalizedInputValidator inputValidator,
-                            TestConfiguration testConfiguration,
+                            TestPropertiesProvider testPropertiesProvider,
                             LocalizedMessagesService localizedMessagesService) {
         super(printStream,
               errorStream,
               inputStream,
               formatter,
               inputValidator,
-              testConfiguration,
+              testPropertiesProvider,
               localizedMessagesService.getMessage(ERR_INCORRECT_CONTENT_CODE),
-              localizedMessagesService.getMessage(ERR_TRY_AGAIN_CODE)
+              localizedMessagesService.getMessage(ERR_TRY_AGAIN_CODE),
+              localizedMessagesService.getMessage(ERR_UNEXPECTED_CODE)
         );
 
         this.localizedMessagesService = localizedMessagesService;
@@ -46,6 +48,11 @@ public class LocalizedStreamsIOService extends StreamsIOService implements Local
     @Override
     public void printErrorLocalized(String code) {
         super.printError(this.localizedMessagesService.getMessage(code));
+    }
+
+    @Override
+    public void printFormattedErrorLocalized(String code, Object... args) {
+        super.printError(this.localizedMessagesService.getMessage(code, args));
     }
 
     @Override

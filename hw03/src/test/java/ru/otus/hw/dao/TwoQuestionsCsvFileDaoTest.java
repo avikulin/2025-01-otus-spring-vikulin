@@ -5,10 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.otus.hw.dao.configuration.DaoContextConfiguration;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 
@@ -22,15 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Выполняется без моков, так как проверяется корректная иньекция ресурса через контекст
  */
 @DisplayName("Parsing CSV-file with two questions")
-@ExtendWith(SpringExtension.class)
-@ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = DaoContextConfiguration.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestPropertySource(properties = {"opencsv.settings.column-separation-symbol=;",
-                                  "opencsv.settings.skip-first-rows=1",
-                                  "test.right-answers-count-to-pass=3",
-                                  "test.filename=dao-tests/two-questions.csv",
-                                  "test.max-number-of-input-data-attempts=10"})
+@SpringBootTest(classes = DaoContextConfiguration.class)
+@TestPropertySource(locations = "classpath:/test-application.yml",
+                    properties = {"opencsv.settings.test-file-name=dao-tests/two-questions.csv"})
+@ActiveProfiles("test")
 class TwoQuestionsCsvFileDaoTest {
     @Autowired
     CsvQuestionDao dataService;

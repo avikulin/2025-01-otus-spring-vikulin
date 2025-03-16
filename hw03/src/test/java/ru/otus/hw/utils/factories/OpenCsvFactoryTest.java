@@ -9,8 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.otus.hw.config.TestServiceConfiguration;
 import ru.otus.hw.config.CsvBeanConfig;
+import ru.otus.hw.config.contracts.TestFileReaderPropertiesProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class OpenCsvFactoryTest {
 
     @Mock
-    private TestServiceConfiguration testFileReaderConfig;
+    private TestFileReaderPropertiesProvider testFileReaderConfig;
 
     @InjectMocks
     private CsvBeanConfig factoryBean;

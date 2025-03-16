@@ -10,14 +10,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.utils.formatters.base.OutputStreamFormatter;
+import ru.otus.hw.utils.formatters.base.DefaultOutputStreamFormatter;
 import ru.otus.hw.utils.formatters.providers.OutputStreamFormatterArgsProvider;
 import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class OutputStreamFormatterTest {
+class DefaultOutputStreamFormatterTest {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
     private static final String MSG_QUESTION_TEMPLATE = "Question: %s";
@@ -31,7 +31,7 @@ class OutputStreamFormatterTest {
     private QuestionValidator mockQuestionValidator;
 
     @InjectMocks
-    private OutputStreamFormatter outputFormatter;
+    private DefaultOutputStreamFormatter outputFormatter;
 
     @BeforeEach
     void setUpTest() {

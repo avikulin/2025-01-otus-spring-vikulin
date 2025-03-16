@@ -4,13 +4,14 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import ru.otus.hw.config.contracts.TestFileReaderConfiguration;
+import org.springframework.stereotype.Component;
+import ru.otus.hw.config.contracts.TestFileReaderPropertiesProvider;
 
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ConfigurationProperties(prefix = "opencsv.settings")
-public class OpenCsvConfiguration implements TestFileReaderConfiguration {
+public class OpenCsvPropertiesProvider implements TestFileReaderPropertiesProvider {
     String testFileName;
 
     char columnSeparationSymbol;

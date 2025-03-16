@@ -2,14 +2,16 @@ package ru.otus.hw.config;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import ru.otus.hw.config.contracts.TestConfiguration;
+import org.springframework.stereotype.Component;
+import ru.otus.hw.config.contracts.TestPropertiesProvider;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ConfigurationProperties(prefix = "test")
-public class TestServiceConfiguration implements TestConfiguration {
+public class TestServicePropertiesProvider implements TestPropertiesProvider {
 
     int rightAnswersCountToPass;
 
