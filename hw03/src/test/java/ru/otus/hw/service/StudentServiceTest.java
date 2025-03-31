@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -17,16 +19,16 @@ import ru.otus.hw.service.ioservice.stub.FakeStdIn;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SpringBootTest(classes = LocalizedIoStubsConfig.class)
 @DisplayName("Student determination behaviour check")
-@ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:/test-application.yml")
-@ContextConfiguration(classes = LocalizedIoStubsConfig.class)
+@ActiveProfiles(profiles = {"test", "localized"})
 class StudentServiceTest {
     private static final String STUDENT_NAME = "name";
     private static final String STUDENT_SURNAME = "surname";
 
     @Autowired
-    @Qualifier("mockedIO")
+    @Qualifier("mockedLocalizedIO")
     LocalizedIOService mockIOService;
 
     @Autowired

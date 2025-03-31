@@ -8,6 +8,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -25,55 +32,59 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Test service behaviour check")
+@SpringBootTest(classes = TestServiceTest.TestConfig.class)
+@ActiveProfiles(profiles = {"test", "localized"})
 @ExtendWith(MockitoExtension.class)
 class TestServiceTest {
     // Небольшое дублирование кода.
     // К сожалению, это необходимое зло: лучше так, чем иметь мутные зависимости...
-    private static final String FREE_ANSWER_PROMPT = "Enter answer in a free form \\> ";
-    private static final String OPTION_IDX_ANSWER_PROMPT = "Enter index (integer number) of correct answers you choose, " +
-                                                           "separated by commas of whitespaces " +
-                                                           "(in case of multi-variant answer) \\> ";
-    private static final String USER_INVITE_PROMPT = "Please answer the questions below%n";
-    private static final String CANT_OBTAIN_THE_ANSWER_ERROR = "Can't obtain the suitable answer from user (max. attempts exceeded)." +
-                                                                System.lineSeparator();
+    static String MSG_CODE_FREE_ANSWER_PROMPT = "test-service.msg.prompt.free-answer";
 
-    private static final String ERROR_MSG_TEMPLATE = System.lineSeparator() + "You have entered incorrect content";
+    static String MSG_CODE_OPTION_IDX_ANSWER_PROMPT = "test-service.msg.prompt.fixed-index-answer";
+
+    static String MSG_CODE_USER_INVITE_PROMPT = "test-service.msg.prompt.user-invite";
+
+    static String MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR = "test-service.error.cant-obtain-answer";
 
     private static final String STUDENT_NAME = "name";
     private static final String STUDENT_SURNAME = "surname";
 
-    @Mock
+    @Configuration
+    @Profile({"test", "localized"})
+    static class TestConfig{}
+
+    @MockitoBean
     LocalizedIOService mockedIoService;
 
-    @Mock
+    @MockitoBean
     QuestionDao mockedQuestionDao;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @MockitoBean
     LocalizedAnswerValidator mockedPositiveAnswerValidator;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @MockitoBean
     LocalizedAnswerValidator mockedNegativeAnswerValidator;
 
-    @Mock
+    @MockitoBean
     QuestionValidator mockedQuestionValidator;
 
-    @Mock
+    @MockitoBean
     LocalizedOutputStreamFormatterImpl mockedOutputStreamFormatter;
 
     @BeforeEach
     void baseSetUp() {
-        when(mockedQuestionDao.findAll()).thenReturn(this.setupQuestions());
-        when(mockedQuestionValidator.checkForUserFreeOption(eq(setupQuestions().get(0))))
-                .thenReturn(false)
-                .thenReturn(false)
-                .thenReturn(false);
-        when(mockedQuestionValidator.checkForUserFreeOption(eq(setupQuestions().get(1)))).thenReturn(true);
-        when(mockedIoService.readIntForRangeWithPrompt(eq(1), eq(2),
-                                                       eq(OPTION_IDX_ANSWER_PROMPT),
-                                                       eq(CANT_OBTAIN_THE_ANSWER_ERROR))).thenReturn(List.of(1));
-        when(mockedIoService.readStringWithPrompt(eq(FREE_ANSWER_PROMPT))).thenReturn("blah blah blah");
-        when(mockedPositiveAnswerValidator.checkAnswer(any(Question.class), anyList())).thenReturn(true);
-        when(mockedNegativeAnswerValidator.checkAnswer(any(Question.class), anyList())).thenReturn(false);
+        lenient().when(mockedQuestionDao.findAll()).thenReturn(this.setupQuestions());
+        lenient().when(mockedQuestionValidator.checkForUserFreeOption(eq(setupQuestions().get(0))))
+                 .thenReturn(false)
+                 .thenReturn(false)
+                 .thenReturn(false);
+        lenient().when(mockedQuestionValidator.checkForUserFreeOption(eq(setupQuestions().get(1)))).thenReturn(true);
+        lenient().when(mockedIoService.readIntForRangeWithPrompt(eq(1), eq(2),
+                                                       eq(MSG_CODE_OPTION_IDX_ANSWER_PROMPT),
+                                                       eq(MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR))).thenReturn(List.of(1));
+        lenient().when(mockedIoService.readStringWithPrompt(eq(MSG_CODE_FREE_ANSWER_PROMPT))).thenReturn("blah blah blah");
+        lenient().when(mockedPositiveAnswerValidator.checkAnswer(any(Question.class), anyList())).thenReturn(true);
+        lenient().when(mockedNegativeAnswerValidator.checkAnswer(any(Question.class), anyList())).thenReturn(false);
     }
 
     @AfterEach
@@ -114,8 +125,9 @@ class TestServiceTest {
 
     void baseTestExecutionFlow(LocalizedAnswerValidator answerValidator, int expected) {
         // секция выполнения
-        var service = setupInstance(answerValidator);
+
         var student = new Student(STUDENT_NAME, STUDENT_SURNAME);
+        var service = setupInstance(answerValidator);
         var testResult = service.executeTestFor(student);
 
         // секция проверок
@@ -129,22 +141,22 @@ class TestServiceTest {
 
         // ввод данных студента
         orderedCalls.verify(mockedIoService).printEmptyLine();
-        orderedCalls.verify(mockedIoService).printFormattedLine(eq(USER_INVITE_PROMPT));
+        orderedCalls.verify(mockedIoService).printLineLocalized(eq(MSG_CODE_USER_INVITE_PROMPT));
 
         // вывод первого вопроса
         orderedCalls.verify(mockedOutputStreamFormatter).questionToStream(any(Question.class));
 
         // ввод ответа на первый вопрос
-        orderedCalls.verify(mockedIoService).readIntForRangeWithPrompt(eq(1), eq(2),
-                                                                       eq(OPTION_IDX_ANSWER_PROMPT),
-                                                                       eq(CANT_OBTAIN_THE_ANSWER_ERROR));
+        orderedCalls.verify(mockedIoService).readIntForRangeWithPromptLocalized(eq(1), eq(2),
+                                                                       eq(MSG_CODE_OPTION_IDX_ANSWER_PROMPT),
+                                                                       eq(MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR));
         orderedCalls.verify(answerValidator).checkAnswer(any(Question.class), anyList());
 
         // вывод второго вопроса
         orderedCalls.verify(mockedOutputStreamFormatter).questionToStream(any(Question.class));
 
         // ввод ответа на второй вопрос
-        orderedCalls.verify(mockedIoService).readStringWithPrompt(eq(FREE_ANSWER_PROMPT));
+        orderedCalls.verify(mockedIoService).readStringWithPromptLocalized(eq(MSG_CODE_FREE_ANSWER_PROMPT));
 
         // контроль результатов
         orderedCalls.verifyNoMoreInteractions();

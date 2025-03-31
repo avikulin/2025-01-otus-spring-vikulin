@@ -1,5 +1,7 @@
 package ru.otus.hw.service;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,6 +12,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
@@ -18,8 +27,10 @@ import ru.otus.hw.exceptions.QuestionReadException;
 import ru.otus.hw.exceptions.QuestionStateException;
 import ru.otus.hw.service.contracts.ResultService;
 import ru.otus.hw.service.contracts.StudentService;
+import ru.otus.hw.service.contracts.TestRunnerService;
 import ru.otus.hw.service.contracts.TestService;
 import ru.otus.hw.service.io.contracts.IOService;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 import java.util.List;
 
@@ -28,36 +39,43 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Test runner behaviour check")
+@SpringBootTest(classes = TestRunnerServiceTest.TestConfig.class)
 @ExtendWith(MockitoExtension.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@ActiveProfiles(profiles = {"test", "localized"})
 class TestRunnerServiceTest {
     // немного дублируем код во избежание мутных зависимостей
-    private static final String MSG_QUESTION_READ_EXCEPTION  = "The internal error appeared during the load " +
-                                                                "of the test configuration file with question";
-    private static final String MSG_QUESTION_STATE_EXCEPTION = "The incorrect question found inside " +
-                                                               "the test configuration file";
+    static final String MSG_QUESTION_READ_EXCEPTION  = "The internal error appeared during the load " +
+                                                       "of the test configuration file with question";
+    static final String MSG_QUESTION_STATE_EXCEPTION = "The incorrect question found inside " +
+                                                       "the test configuration file";
 
-    private static final String MSG_UNKNOWN_ERROR = "Unknown error occurred. See the log file for details";
+    static final String MSG_UNKNOWN_ERROR = "Unknown error occurred. See the log file for details";
 
+    @Configuration
+    @Import(TestRunnerServiceImpl.class)
+    @Profile("test")
+    static class TestConfig{}
 
-    @Mock
+    @MockitoBean
     TestService testService;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @MockitoBean
     StudentService studentService;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @MockitoBean
     ResultService resultService;
 
-    @Mock
-    IOService ioService;
+    @MockitoBean
+    LocalizedIOService ioService;
 
-    @InjectMocks
-    TestRunnerServiceImpl testRunnerService;
+    @Autowired
+    TestRunnerService testRunnerService;
 
     @BeforeEach
     public void setupTest(){
-        when(studentService.determineCurrentStudent()).thenReturn(sampleStudentFactory());
-        when(testService.executeTestFor(any(Student.class))).thenReturn(sampleResultFactory());
+        lenient().when(studentService.determineCurrentStudent()).thenReturn(sampleStudentFactory());
+        lenient().when(testService.executeTestFor(any(Student.class))).thenReturn(sampleResultFactory());
     }
 
     @AfterEach

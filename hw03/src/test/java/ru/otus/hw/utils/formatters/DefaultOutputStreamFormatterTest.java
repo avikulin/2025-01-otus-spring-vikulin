@@ -1,5 +1,7 @@
 package ru.otus.hw.utils.formatters;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +10,12 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.utils.formatters.base.DefaultOutputStreamFormatter;
@@ -17,6 +25,7 @@ import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class DefaultOutputStreamFormatterTest {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
@@ -24,13 +33,18 @@ class DefaultOutputStreamFormatterTest {
     private static final String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #%d : %s";
     private static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
-    @Mock
+    @Configuration
+    @Import(DefaultOutputStreamFormatter.class)
+    @Profile("test")
+    static class TestConfig{}
+
+    @MockitoBean
     private IOService mockIoService;
 
-    @Mock
+    @MockitoBean
     private QuestionValidator mockQuestionValidator;
 
-    @InjectMocks
+    @Autowired
     private DefaultOutputStreamFormatter outputFormatter;
 
     @BeforeEach
