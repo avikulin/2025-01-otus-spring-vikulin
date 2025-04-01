@@ -6,12 +6,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
+import ru.otus.hw.utils.validators.base.DefaultAnswerValidatorImpl;
 import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
 import ru.otus.hw.utils.validators.base.contracts.AnswerValidator;
 import ru.otus.hw.utils.validators.providers.AnswerValidatorArgsProvider;
@@ -21,12 +28,17 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = AnswerValidatorTest.TestConfig.class)
 @TestPropertySource(locations = "classpath:/test-application.yml")
-@ContextConfiguration(classes = ValidatorsContextConfiguration.class)
+@Import(DefaultAnswerValidatorImpl.class)
+@ActiveProfiles({"test","native"})
 class AnswerValidatorTest {
     @Autowired
     private AnswerValidator validator;
+
+    @Configuration
+    @Profile("test")
+    static class TestConfig{}
 
     @DisplayName("Answer validation test")
     @ParameterizedTest(name = "{0}")

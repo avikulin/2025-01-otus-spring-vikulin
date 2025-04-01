@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
@@ -24,19 +25,16 @@ import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = DefaultInputStreamFormatterTest.TestConfig.class)
+@ActiveProfiles({"test","native"})
+@Import(DefaultOutputStreamFormatter.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class DefaultOutputStreamFormatterTest {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
-    private static final String MSG_QUESTION_TEMPLATE = "Question: %s";
-    private static final String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #%d : %s";
-    private static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
-
-    @Configuration
-    @Import(DefaultOutputStreamFormatter.class)
-    @Profile("test")
-    static class TestConfig{}
+    static final String MSG_QUESTION_TEMPLATE = "Question: {0}";
+    static final String MSG_FIXED_ANSWER_TEMPLATE = "  ⮕ Answer #{0} : {1}";
+    static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
     @MockitoBean
     private IOService mockIoService;
