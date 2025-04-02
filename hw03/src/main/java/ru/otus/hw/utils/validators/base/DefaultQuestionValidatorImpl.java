@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-@Profile("native")
+@Profile({"native", "localized"})
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultQuestionValidatorImpl implements QuestionValidator {

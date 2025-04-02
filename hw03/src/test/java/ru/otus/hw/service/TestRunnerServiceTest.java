@@ -8,8 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +27,6 @@ import ru.otus.hw.service.contracts.ResultService;
 import ru.otus.hw.service.contracts.StudentService;
 import ru.otus.hw.service.contracts.TestRunnerService;
 import ru.otus.hw.service.contracts.TestService;
-import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 
 import java.util.List;
@@ -45,12 +42,9 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles(profiles = {"test", "localized"})
 class TestRunnerServiceTest {
     // немного дублируем код во избежание мутных зависимостей
-    static final String MSG_QUESTION_READ_EXCEPTION  = "The internal error appeared during the load " +
-                                                       "of the test configuration file with question";
-    static final String MSG_QUESTION_STATE_EXCEPTION = "The incorrect question found inside " +
-                                                       "the test configuration file";
-
-    static final String MSG_UNKNOWN_ERROR = "Unknown error occurred. See the log file for details";
+    static final String MSG_CODE_QUESTION_READ_EXCEPTION = "test-runner-service.error.question-read";
+    static final String MSG_CODE_QUESTION_STATE_EXCEPTION = "test-runner-service.error.question-state";
+    static final String MSG_CODE_UNKNOWN_ERROR = "test-runner-service.error.unknown";
 
     @Configuration
     @Import(TestRunnerServiceImpl.class)
@@ -137,7 +131,7 @@ class TestRunnerServiceTest {
         testRunnerService.run();
 
         // проверка результатов
-        verify(ioService, Mockito.times(1)).printError(startsWith(MSG_QUESTION_READ_EXCEPTION));
+        verify(ioService, Mockito.times(1)).printErrorLocalized(startsWith(MSG_CODE_QUESTION_READ_EXCEPTION));
     }
 
     @Test
@@ -150,7 +144,7 @@ class TestRunnerServiceTest {
         testRunnerService.run();
 
         // проверка результатов
-        verify(ioService, Mockito.times(1)).printError(startsWith(MSG_QUESTION_STATE_EXCEPTION));
+        verify(ioService, Mockito.times(1)).printErrorLocalized(startsWith(MSG_CODE_QUESTION_STATE_EXCEPTION));
     }
 
     @Test
@@ -161,6 +155,6 @@ class TestRunnerServiceTest {
         // выполнение теста
         testRunnerService.run();
         // проверка результатов
-        verify(ioService, Mockito.times(1)).printError(startsWith(MSG_UNKNOWN_ERROR));
+        verify(ioService, Mockito.times(1)).printErrorLocalized(startsWith(MSG_CODE_UNKNOWN_ERROR));
     }
 }

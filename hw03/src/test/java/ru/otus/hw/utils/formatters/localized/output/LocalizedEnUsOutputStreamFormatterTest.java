@@ -1,38 +1,40 @@
-package ru.otus.hw.utils.formatters;
+package ru.otus.hw.utils.formatters.localized.output;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import ru.otus.hw.config.TestServicePropertiesProvider;
 import ru.otus.hw.domain.Question;
-import ru.otus.hw.service.io.contracts.IOService;
-import ru.otus.hw.utils.formatters.base.DefaultOutputStreamFormatter;
-import ru.otus.hw.utils.formatters.base.contracts.OutputFormatter;
+import ru.otus.hw.service.io.contracts.LocalizedIOService;
+import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
+import ru.otus.hw.utils.formatters.localized.LocalizedOutputStreamFormatterImpl;
+import ru.otus.hw.utils.formatters.localized.contracts.LocalizedOutputFormatter;
 import ru.otus.hw.utils.formatters.providers.OutputStreamFormatterArgsProvider;
 import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 
 import static org.mockito.Mockito.*;
 
-@DisplayName("Check the output formatting behaviour")
-@SpringBootTest(classes = DefaultInputStreamFormatterTest.TestConfig.class)
-@ActiveProfiles({"test","native"})
-@Import(DefaultOutputStreamFormatter.class)
+@DisplayName("Check the localized output formatting for (en-US)")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@SpringBootTest(classes = LocalizedIoStubsConfig.class)
+@ActiveProfiles({"test","localized"})
+@TestPropertySource(locations = "classpath:/test-application.yml", properties = {"test.locale=en-US"})
+@EnableConfigurationProperties({TestServicePropertiesProvider.class})
+@Import({LocalizedOutputStreamFormatterImpl.class})
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class DefaultOutputStreamFormatterTest {
+class LocalizedEnUsOutputStreamFormatterTest {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
     static final String MSG_QUESTION_TEMPLATE = "Question: {0}";
@@ -40,13 +42,13 @@ class DefaultOutputStreamFormatterTest {
     static final String MSG_FREE_USER_ANSWER_TEMPLATE = "  ⮕ Requires user answer (in a free form)";
 
     @MockitoBean
-    private IOService mockIoService;
+    private LocalizedIOService mockIoService;
 
     @MockitoBean
     private QuestionValidator mockQuestionValidator;
 
     @Autowired
-    private OutputFormatter outputFormatter;
+    private LocalizedOutputFormatter outputFormatter;
 
     @BeforeEach
     void setUpTest() {
