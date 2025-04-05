@@ -2,10 +2,10 @@ package ru.otus.hw.utils.validators.base;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Question;
@@ -18,14 +18,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Component
 @Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultAnswerValidatorImpl implements AnswerValidator {
     static String MSG_QUESTION_NULL_REFERENCE_ERROR = "Reference to the answer object must be non-null";
+
     static String MSG_EMPTY_ANSWER_COLLECTION_ERROR = "Empty answer content is incorrect";
 
     QuestionValidator questionValidator;
+
     String msgErrEmptyAnswersCollection;
 
     /**
@@ -62,6 +65,7 @@ public class DefaultAnswerValidatorImpl implements AnswerValidator {
     public boolean checkAnswer(Question question, List<Integer> answer)  throws IncorrectAnswerException {
         Objects.requireNonNull(question, MSG_QUESTION_NULL_REFERENCE_ERROR);
         if (CollectionUtils.isEmpty(answer)) {
+            log.error(MSG_EMPTY_ANSWER_COLLECTION_ERROR);
             throw new IncorrectAnswerException(this.msgErrEmptyAnswersCollection);
         }
         if (this.questionValidator.checkForUserFreeOption(question)) {    // свободный ответ

@@ -3,23 +3,24 @@ spring:
     active:
       - production
       - localized
+
   messages:
-    baseName: messages
+    basename: messages
     encoding: UTF-8
-    # Не дает свалиться в системную локаль если не найден файл для переданной в MessageSource
-    # Если false то будут браться сообщения из дефолтного файла, если true, то из файла соответствующего системной локали
-    fallbackToSystemLocale: false
+    fallback-to-system-locale: false
+    default-locale: en_US
 
 opencsv:
-  settings:
     column-separation-symbol: ";"
     number-of-rows-skipped: 1
-    test-file-name: "questions.csv"
 
 test:
-  locale: en-US
+  locale: ru-RU
   right-answers-count-to-pass: 3
   max-number-of-input-data-attempts: 3
+  file-name-by-locale-tag:
+    ru-RU: questions_ru.csv
+    en-US: questions.csv
 
 logging:
   config: classpath:/logback-spring.xml

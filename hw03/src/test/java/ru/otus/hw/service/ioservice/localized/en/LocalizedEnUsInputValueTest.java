@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.service.ioservice.stub.FakeStdErr;
@@ -22,11 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest (classes = LocalizedIoStubsConfig.class)
 @DisplayName("Check basic localized (en-US) console input behaviour")
-@TestPropertySource(locations = {"classpath:test-application.yml"}, properties = "test.locale=en-US")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@ActiveProfiles(profiles = {"test", "localized"})
+@TestPropertySource(properties = "test.locale=en-US")
+@ActiveProfiles(profiles = "localized")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class LocalizedEnUsInputValueTest {
+class LocalizedEnUsInputValueTest extends ConfigurableByPropertiesTestBase {
     public static final String PROMPT_VALUE = "Answer to the Ultimate Question of Life, the Universe, and Everything";
     public static final String PROMPT_CODE = "the-ultimate-question-prompt";
     public static final String ERR_CODE = "general-io-error-message";

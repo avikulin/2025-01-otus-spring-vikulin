@@ -6,19 +6,16 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.utils.validators.base.DefaultInputValidatorImpl;
-import ru.otus.hw.utils.validators.base.contracts.InputValidator;
-import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
 import ru.otus.hw.utils.validators.localized.contracts.LocalizedInputValidator;
 import ru.otus.hw.utils.validators.providers.InputValidatorNegativeArgsProvider;
 import ru.otus.hw.utils.validators.providers.InputValidatorPositiveArgsProvider;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +23,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Check the localized (ru-RU) behaviour of input validation")
 @SpringBootTest(classes = LocalizedIoStubsConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import({DefaultInputValidatorImpl.class})
-@ActiveProfiles({"test","localized"})
-@TestPropertySource(locations = "classpath:/test-application.yml", properties = {"test.locale=ru_RU"})
-class LocalizedRuRuInputValidatorTest {
+@Import(DefaultInputValidatorImpl.class)
+@ActiveProfiles("test")
+@TestPropertySource(properties = {"test.locale=ru-RU"})
+class LocalizedRuRuInputValidatorTest extends ConfigurableByPropertiesTestBase {
     Map<String, String> errMsg = Map.of(
             "input-validator.error.exceeds-valid-range","Номер варианта не входит в допустимый диапазон",
             "input-validator.error.doubled-variant","Дублирование номера варианта запрещено",

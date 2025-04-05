@@ -3,7 +3,7 @@ package ru.otus.hw.utils.validators.base;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.Validate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.domain.Answer;
@@ -15,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Component
 @Profile({"native", "localized"})
 @NoArgsConstructor
@@ -56,6 +57,7 @@ public class DefaultQuestionValidatorImpl implements QuestionValidator {
         var checkQuestionNotPresent = (questionText == null || questionText.isBlank());
         if (checkQuestionNotPresent) {
             String errMsg = formatErrMsg(question, MSG_QUESTION_IS_EMPTY);
+            log.error(errMsg);
             throw new QuestionStateException(errMsg);
         }
     }
@@ -65,6 +67,7 @@ public class DefaultQuestionValidatorImpl implements QuestionValidator {
         var checkAnswersNotPresent = (answers == null || answers.isEmpty());
         if (checkAnswersNotPresent) {
             String errMsg = formatErrMsg(question, MSG_QUESTION_WITHOUT_ANSWERS);
+            log.error(errMsg);
             throw new QuestionStateException(errMsg);
         }
     }
@@ -89,6 +92,7 @@ public class DefaultQuestionValidatorImpl implements QuestionValidator {
 
         if (correctAnswersCount == 0) {
             String errMsg = formatErrMsg(question, MSG_QUESTION_WITH_NO_CORRECT_ANSWER);
+            log.error(errMsg);
             throw new QuestionStateException(errMsg);
         }
     }

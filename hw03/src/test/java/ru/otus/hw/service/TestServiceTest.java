@@ -4,17 +4,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import ru.otus.hw.dao.contracts.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -34,7 +29,6 @@ import static org.mockito.Mockito.*;
 @DisplayName("Test service behaviour check")
 @SpringBootTest(classes = TestServiceTest.TestConfig.class)
 @ActiveProfiles(profiles = {"test", "localized"})
-@ExtendWith(MockitoExtension.class)
 class TestServiceTest {
     // Небольшое дублирование кода.
     // К сожалению, это необходимое зло: лучше так, чем иметь мутные зависимости...
@@ -140,7 +134,6 @@ class TestServiceTest {
         orderedCalls.verify(mockedQuestionDao).findAll();
 
         // ввод данных студента
-        orderedCalls.verify(mockedIoService).printEmptyLine();
         orderedCalls.verify(mockedIoService).printLineLocalized(eq(MSG_CODE_USER_INVITE_PROMPT));
 
         // вывод первого вопроса

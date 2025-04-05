@@ -56,17 +56,12 @@ public class TestServiceImpl implements TestService {
                         MSG_CODE_CANT_OBTAIN_THE_ANSWER_ERROR
                 );
                 result = localizedAnswerValidator.checkAnswer(question, answer);
-            } catch (NullPointerException npe){
-                // запись в системный журнал на английском
-                log.error("Nul-pointer exception occurred: {}", npe.getMessage());
-
-                // вывод в UI локализованного сообщения
+            } catch (NullPointerException npe) {
+                log.error("Nul-pointer exception occurred. See the previous lines for details");
                 this.localizedIoService.printError(MSG_CODE_UNEXPECTED_EXCEPTION);
-            }
-            catch (IncorrectAnswerException e) {
-                log.error(e.getMessage());
+            } catch (IncorrectAnswerException e) {
+                log.error("Incorrect answer occurred. See the previous lines for details");
                 this.localizedIoService.printError(e.getMessage());
-                result = false;
             }
             return result;
         }
@@ -76,7 +71,6 @@ public class TestServiceImpl implements TestService {
     public TestResult executeTestFor(Student student) {
         var questions = questionDao.findAll();
         var testResult = new TestResult(student);
-        localizedIoService.printEmptyLine();
         localizedIoService.printLineLocalized(MSG_CODE_USER_INVITE_PROMPT);
         for (var question: questions) {
             localizedOutputFormatter.questionToStream(question);

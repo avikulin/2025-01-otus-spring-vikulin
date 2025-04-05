@@ -12,7 +12,7 @@ import ru.otus.hw.utils.validators.localized.contracts.LocalizedAnswerValidator;
 @Component
 @Profile("localized")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class LocalizedAnswerValidatorImpl extends DefaultAnswerValidatorImpl implements LocalizedAnswerValidator{
+public class LocalizedAnswerValidatorImpl extends DefaultAnswerValidatorImpl implements LocalizedAnswerValidator {
     static String MSG_CODE_ERR_EMPTY_ANSWER_COLLECTION = "answer-validator.error.empty-answer";
 
     protected LocalizedAnswerValidatorImpl(QuestionValidator questionValidator,

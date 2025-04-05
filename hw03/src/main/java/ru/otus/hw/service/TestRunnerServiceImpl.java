@@ -42,15 +42,17 @@ public class TestRunnerServiceImpl implements TestRunnerService {
             var testResult = testService.executeTestFor(student);
             resultService.showResult(testResult);
         } catch (QuestionReadException ex) {
-            var msg = String.format(MSG_CODE_QUESTION_READ_EXCEPTION + ": %s", ex.getMessage());
+            var msg = String.format("The internal error appeared during the load of the test " +
+                                    "configuration file with question: %s", ex.getMessage());
             log.error(msg, ex);
             localizedIoService.printErrorLocalized(MSG_CODE_QUESTION_READ_EXCEPTION);
         } catch (QuestionStateException ex) {
-            var msg = String.format(MSG_CODE_QUESTION_STATE_EXCEPTION + ": %s", ex.getMessage());
+            var msg = String.format("The incorrect question found inside the test configuration file: %s",
+                                    ex.getMessage());
             log.error(msg, ex);
             localizedIoService.printErrorLocalized(MSG_CODE_QUESTION_STATE_EXCEPTION);
         } catch (Throwable ex) {
-            var msg = String.format(MSG_CODE_UNKNOWN_ERROR + ": %s", ex.getMessage());
+            var msg = String.format("Unknown error has occurred. See the log file for details: %s", ex.getMessage());
             log.error(msg, ex);
             localizedIoService.printErrorLocalized(MSG_CODE_UNKNOWN_ERROR);
         }

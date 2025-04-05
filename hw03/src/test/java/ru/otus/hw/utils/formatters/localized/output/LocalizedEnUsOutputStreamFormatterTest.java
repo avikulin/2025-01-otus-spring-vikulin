@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.otus.hw.config.TestServicePropertiesProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.config.TestServiceConfiguration;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
@@ -27,14 +27,13 @@ import ru.otus.hw.utils.validators.base.contracts.QuestionValidator;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Check the localized output formatting for (en-US)")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(classes = LocalizedIoStubsConfig.class)
-@ActiveProfiles({"test","localized"})
-@TestPropertySource(locations = "classpath:/test-application.yml", properties = {"test.locale=en-US"})
-@EnableConfigurationProperties({TestServicePropertiesProvider.class})
-@Import({LocalizedOutputStreamFormatterImpl.class})
+@ActiveProfiles("localized")
+@TestPropertySource(properties = "test.locale=en-US")
+@EnableConfigurationProperties(TestServiceConfiguration.class)
+@Import(LocalizedOutputStreamFormatterImpl.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class LocalizedEnUsOutputStreamFormatterTest {
+class LocalizedEnUsOutputStreamFormatterTest extends ConfigurableByPropertiesTestBase {
     // немного дублируем код, но IMHO - это неизбежное зло
     // подробности тут - https://www.yegor256.com/2016/05/03/test-methods-must-share-nothing.html
     static final String MSG_QUESTION_TEMPLATE = "Question: {0}";

@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import ru.otus.hw.config.TestServicePropertiesProvider;
-import ru.otus.hw.config.contracts.TestPropertiesProvider;
+import ru.otus.hw.config.TestServiceConfiguration;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.service.io.StreamsIOService;
 import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.ioservice.stub.FakeStdErr;
@@ -26,7 +26,7 @@ import ru.otus.hw.utils.validators.base.contracts.InputValidator;
         DefaultInputStreamFormatter.class, DefaultInputValidatorImpl.class})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Profile({"test", "native"})
-@EnableConfigurationProperties({TestServicePropertiesProvider.class})
+@EnableConfigurationProperties({TestServiceConfiguration.class})
 public class BaseIoStubsConfig {
     @Autowired
     FakeStdOut fakeStdOut;
@@ -44,7 +44,7 @@ public class BaseIoStubsConfig {
     InputValidator inputValidator;
 
     @Autowired
-    TestPropertiesProvider testPropertiesProvider;
+    TestConfig testConfig;
 
     @Bean("mockedBaseIO")
     public IOService getMockedIO(){
@@ -53,7 +53,7 @@ public class BaseIoStubsConfig {
                                     fakeStdIn.getInstance(),
                                     inputFormatter,
                                     inputValidator,
-                                    testPropertiesProvider
+                testConfig
         );
     }
 }

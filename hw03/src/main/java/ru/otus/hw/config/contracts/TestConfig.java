@@ -1,6 +1,6 @@
 package ru.otus.hw.config.contracts;
 
-public interface TestPropertiesProvider {
+public interface TestConfig {
     int getRightAnswersCountToPass();
 
     int getMaxNumberOfInputDataAttempts();

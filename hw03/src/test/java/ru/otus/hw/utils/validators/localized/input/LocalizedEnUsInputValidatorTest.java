@@ -6,9 +6,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.utils.validators.base.DefaultInputValidatorImpl;
@@ -23,11 +23,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Check the localized (en-US) behaviour of input validation")
 @SpringBootTest(classes = LocalizedIoStubsConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import({DefaultInputValidatorImpl.class})
-@ActiveProfiles({"test","localized"})
-@TestPropertySource(locations = "classpath:/test-application.yml", properties = {"test.locale=en_US"})
-class LocalizedEnUsInputValidatorTest {
+@Import(DefaultInputValidatorImpl.class)
+@ActiveProfiles("localized")
+@TestPropertySource(properties = "test.locale=en-US")
+class LocalizedEnUsInputValidatorTest extends ConfigurableByPropertiesTestBase {
     Map<String, String> errMsg = Map.of(
             "input-validator.error.exceeds-valid-range","Variant exceeds the valid range",
             "input-validator.error.doubled-variant","Doubled variants are prohibited",

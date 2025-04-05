@@ -7,9 +7,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
@@ -26,11 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("Check the localized (ru-RU) behaviour of answer validation")
 @SpringBootTest(classes = LocalizedIoStubsConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@TestPropertySource(locations = "classpath:/test-application.yml", properties = "test.locale=ru_RU")
+@TestPropertySource(properties = "test.locale=ru-RU")
 @Import({LocalizedAnswerValidatorImpl.class, DefaultQuestionValidatorImpl.class})
-@ActiveProfiles({"test","localized"})
-class LocalizedRuRuAnswerValidatorTest {
+@ActiveProfiles("localized")
+class LocalizedRuRuAnswerValidatorTest extends ConfigurableByPropertiesTestBase {
     @Autowired
     private LocalizedAnswerValidator validator;
 

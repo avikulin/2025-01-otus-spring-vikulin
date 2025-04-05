@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.utils.formatters.base.DefaultInputStreamFormatter;
@@ -23,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(classes = {LocalizedIoStubsConfig.class})
 @DisplayName("Input data formatting behaviour check")
-@TestPropertySource(locations = "/test-application.yml", properties = {"test.locale=en_US"})
+@TestPropertySource(properties = "test.locale=en-US")
 @Import(DefaultInputStreamFormatter.class)
-@ActiveProfiles({"test","localized"})
-class LocalizedEnUsInputStreamFormatterTest {
+@ActiveProfiles("localized")
+class LocalizedEnUsInputStreamFormatterTest extends ConfigurableByPropertiesTestBase {
     @Autowired
     LocalizedInputFormatter formatter;
 

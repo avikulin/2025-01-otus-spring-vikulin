@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.service.ioservice.config.LocalizedIoStubsConfig;
 import ru.otus.hw.service.ioservice.provider.LocalizedEnUsIoTestDataProvider;
@@ -19,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Check localized (en-US) formatted error output behaviour")
 @SpringBootTest(classes = {LocalizedIoStubsConfig.class})
-@TestPropertySource(locations = "classpath:test-application.yml", properties = "test.locale=en-US")
-@ActiveProfiles({"test","localized"})
-public class LocalizedEnUsPrintFormattedErrorTest {
+@TestPropertySource(properties = "test.locale=en-US")
+@ActiveProfiles("localized")
+public class LocalizedEnUsPrintFormattedErrorTest  extends ConfigurableByPropertiesTestBase {
     static final String HW_TEST_EXPECTED="Hello, World!" + System.lineSeparator();
 
     @Autowired

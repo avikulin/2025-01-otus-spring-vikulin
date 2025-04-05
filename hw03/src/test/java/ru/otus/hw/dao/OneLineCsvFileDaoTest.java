@@ -2,15 +2,10 @@ package ru.otus.hw.dao;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
 import ru.otus.hw.dao.configuration.DaoContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,10 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 @DisplayName("Parsing one line CSV-file")
 @SpringBootTest(classes = DaoContextConfiguration.class)
-@TestPropertySource(locations = "classpath:/test-application.yml",
-                    properties = {"opencsv.settings.test-file-name=dao-tests/one-string.csv"})
-@ActiveProfiles("test")
-class OneLineCsvFileDaoTest {
+@TestPropertySource(properties = {"test.fileNameByLocaleTag.en-US=dao-tests/one-string.csv",
+                                  "test.locale=en-US"})
+class OneLineCsvFileDaoTest extends ConfigurableByPropertiesTestBase {
     @Autowired
     CsvQuestionDao dataService;
 

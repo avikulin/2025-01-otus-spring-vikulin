@@ -22,6 +22,7 @@ import java.util.Objects;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LocalizedMessagesServiceImpl implements LocalizedMessagesService {
     LocaleConfig localeConfig;
+
     MessageSource messageSource;
 
     @Override

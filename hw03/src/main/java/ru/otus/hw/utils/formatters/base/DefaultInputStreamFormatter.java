@@ -25,6 +25,7 @@ public class DefaultInputStreamFormatter implements InputFormatter {
     static String MSG_EMPTY_INPUT_STRING_ERROR = "Empty input string is not a correct answer.";
 
     String errMsgIncorrectContent;
+
     String errMsgEmptyInputString;
 
 

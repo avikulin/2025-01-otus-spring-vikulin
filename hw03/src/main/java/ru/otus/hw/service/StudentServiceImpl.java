@@ -14,9 +14,9 @@ import ru.otus.hw.service.io.contracts.LocalizedIOService;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class StudentServiceImpl implements StudentService {
-    static String MSG_CODE_FIRST_NAME_PROMPT="student-service.msg.prompt.first-name";
+    static String MSG_CODE_FIRST_NAME_PROMPT = "student-service.msg.prompt.first-name";
 
-    static String MSG_CODE_LAST_NAME_PROMPT="student-service.msg.prompt.last-name";
+    static String MSG_CODE_LAST_NAME_PROMPT = "student-service.msg.prompt.last-name";
 
     LocalizedIOService localizedIoService;
 

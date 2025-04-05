@@ -2,6 +2,7 @@ package ru.otus.hw.utils.validators.base;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -14,13 +15,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @Profile("native")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultInputValidatorImpl implements InputValidator {
     static String TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR = "Variant exceeds the valid range: from {0} to {1}";
 
-    static String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variant is prohibited: [ {0} ]";
+    static String TEMPLATE_DOUBLED_VARIANT_ERROR = "Doubled variants are prohibited: [ {0} ]";
 
     static String MSG_NULL_ANSWER_COLLECTION = "Input value object must be not-null";
 
@@ -48,7 +50,6 @@ public class DefaultInputValidatorImpl implements InputValidator {
         this.msgErrTemplateExceedsTheValidRange = msgErrTemplateExceedsTheValidRange;
         this.msgErrTemplateDoubledVariant = msgErrTemplateDoubledVariant;
         this.msgErrEmptyOptions = msgErrEmptyOptions;
-
     }
 
 
@@ -87,6 +88,7 @@ public class DefaultInputValidatorImpl implements InputValidator {
                 .filter(x -> x < min || x > max)
                 .count();
         if (countUnbound > 0) {
+            log.error(MessageFormat.format(TEMPLATE_EXCEEDS_THE_VALID_RANGE_ERROR, min, max));
             String msg = MessageFormat.format(this.msgErrTemplateExceedsTheValidRange, min, max);
             throw new IncorrectAnswerException(msg);
         }
@@ -105,11 +107,12 @@ public class DefaultInputValidatorImpl implements InputValidator {
                 .toList();
 
         if (!doubledOptions.isEmpty()) {
-            String msg = MessageFormat.format(this.msgErrTemplateDoubledVariant,
-                    doubledOptions.stream()
-                            .map(String::valueOf)
-                            .collect(Collectors.joining(","))
-            );
+            var doubledTokens = doubledOptions
+                                    .stream()
+                                    .map(String::valueOf)
+                                    .collect(Collectors.joining(","));
+            log.error(MessageFormat.format(TEMPLATE_DOUBLED_VARIANT_ERROR, doubledTokens));
+            String msg = MessageFormat.format(this.msgErrTemplateDoubledVariant, doubledTokens);
             throw new IncorrectAnswerException(msg);
         }
     }

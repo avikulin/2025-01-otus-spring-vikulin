@@ -6,12 +6,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.config.contracts.TestPropertiesProvider;
+import ru.otus.hw.config.contracts.TestConfig;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.utils.formatters.base.contracts.InputFormatter;
@@ -31,9 +29,13 @@ import java.util.regex.Pattern;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class StreamsIOService implements IOService {
     static String MSG_PATTERN_NEWLINE = "%n";
-    static String ERROR_MSG_INCORRECT_CONTENT = "You have entered incorrect content: ";
+
+    static String ERROR_MSG_INCORRECT_CONTENT = "You have entered incorrect content. " +
+                                                "See the previous lines for details.";
+
     static String ERROR_MSG_TRY_AGAIN = "Try again...";
-    static String ERROR_MSG_UNEXPECTED_EXCEPTION = "Unexpected exception occurred. See the log file for more details.";
+
+    static String ERROR_MSG_UNEXPECTED_EXCEPTION = "Unexpected exception occurred. See the previous lines for details.";
 
     /**
      * Приходится городить огород, чтобы не размывать границы ответственности: этот сервис работает только
@@ -49,7 +51,7 @@ public class StreamsIOService implements IOService {
 
     InputValidator inputValidator;
 
-    TestPropertiesProvider testPropertiesProvider;
+    TestConfig testConfig;
 
     PrintStream printStream;
 
@@ -68,7 +70,7 @@ public class StreamsIOService implements IOService {
      * @param inputStream               Ссылка на поток ввода (stdin или заменитель)
      * @param formatter                 Ссылка на бин парсера формата ответов
      * @param inputValidator            Ссылка на валидатор вводимого значения
-     * @param testPropertiesProvider         Ссылка на бин конфигурации приложения
+     * @param testConfig         Ссылка на бин конфигурации приложения
      * @param errMsgIncorrectContent    Шаблон сообщения о сути ошибки ввода
      * @param errMsgTryAgain            Шаблон сообщения о необходимости повторного ввода
      */
@@ -77,7 +79,7 @@ public class StreamsIOService implements IOService {
                                InputStream inputStream,
                                InputFormatter formatter,
                                InputValidator inputValidator,
-                               TestPropertiesProvider testPropertiesProvider,
+                               TestConfig testConfig,
                                String errMsgIncorrectContent,
                                String errMsgTryAgain,
                                String errMsgUnexpectedException) {
@@ -86,13 +88,13 @@ public class StreamsIOService implements IOService {
         Objects.requireNonNull(inputStream);
         Objects.requireNonNull(formatter);
         Objects.requireNonNull(inputValidator);
-        Objects.requireNonNull(testPropertiesProvider);
+        Objects.requireNonNull(testConfig);
         Validate.notBlank(errMsgIncorrectContent);
         Validate.notBlank(errMsgTryAgain);
 
         this.formatter = formatter;
         this.inputValidator = inputValidator;
-        this.testPropertiesProvider = testPropertiesProvider;
+        this.testConfig = testConfig;
         this.printStream = printStream;
         this.errorStream = errorStream;
         this.scanner = new Scanner(inputStream);
@@ -111,9 +113,9 @@ public class StreamsIOService implements IOService {
                             @Value("#{T(System).in}") InputStream inputStream,
                             InputFormatter formatter,
                             InputValidator inputValidator,
-                            TestPropertiesProvider testPropertiesProvider) {
+                            TestConfig testConfig) {
         this(printStream, errorStream, inputStream,
-             formatter, inputValidator, testPropertiesProvider,
+             formatter, inputValidator, testConfig,
              ERROR_MSG_INCORRECT_CONTENT, ERROR_MSG_TRY_AGAIN, ERROR_MSG_UNEXPECTED_EXCEPTION);
     }
 
@@ -177,7 +179,7 @@ public class StreamsIOService implements IOService {
     @Override
     @SneakyThrows
     public List<Integer> readIntForRangeWithPrompt(int min, int max, String prompt, String errorMessage) {
-        var maxAttemptsLimit = this.testPropertiesProvider.getMaxNumberOfInputDataAttempts();
+        var maxAttemptsLimit = this.testConfig.getMaxNumberOfInputDataAttempts();
         for (int i = 0; i < maxAttemptsLimit; i++) {
             try {
                 if (prompt != null) {
@@ -187,29 +189,35 @@ public class StreamsIOService implements IOService {
                 var parsedValues = this.formatter.parseAnswers(rawValue);
                 this.inputValidator.checkIndexValues(min, max, parsedValues);
                 return parsedValues;
-            } catch (NullPointerException npe){
-                log.error("Nul-pointer exception occurred: {}", npe.getMessage());
-                // запись в лог на английском
-                String msgSystem = MessageFormat.format(ERROR_MSG_UNEXPECTED_EXCEPTION, npe.getMessage());
-                log.error(msgSystem);
-
-                // локализованное сообщение для UI
-                this.printFormattedError(this.unexpectedErrorMsg);
-                Thread.sleep(500); // Задержка для синхронизации stdout и stderr
-                // + SneakyThrows, чтобы не городить огород.
-            }
-            catch (IncorrectAnswerException ex) {
-                // запись в лог на английском
-                String msgSystem = MessageFormat.format(ERROR_MSG_INCORRECT_CONTENT, ex.getMessage());
-                log.error(msgSystem);
-
-                // локализованное сообщение для UI
-                String msgLocalized = MessageFormat.format(inputErrorMsgTemplate, ex.getMessage());
-                this.printFormattedError(msgLocalized);
-                Thread.sleep(500); // Задержка для синхронизации stdout и stderr
-                // + SneakyThrows, чтобы не городить огород.
+            } catch (NullPointerException npe) {
+                reportNullPointerException(npe);
+            } catch (IncorrectAnswerException ex) {
+                reportIncorrectAnswer(ex);
             }
         }
         throw new IncorrectAnswerException(errorMessage);
+    }
+
+    private void reportIncorrectAnswer(IncorrectAnswerException ex) throws InterruptedException {
+        // запись в лог на английском
+        log.error(ERROR_MSG_INCORRECT_CONTENT);
+
+        // локализованное сообщение для UI
+        String msgLocalized = MessageFormat.format(inputErrorMsgTemplate, ex.getMessage());
+        this.printFormattedError(msgLocalized);
+        Thread.sleep(500); // Задержка для синхронизации stdout и stderr
+        // + SneakyThrows, чтобы не городить огород.
+    }
+
+    private void reportNullPointerException(NullPointerException npe) throws InterruptedException {
+        log.error("Nul-pointer exception occurred: {}", npe.getMessage());
+        // запись в лог на английском
+        var msgSystem = MessageFormat.format(ERROR_MSG_UNEXPECTED_EXCEPTION, npe.getMessage());
+        log.error(msgSystem);
+
+        // локализованное сообщение для UI
+        this.printFormattedError(this.unexpectedErrorMsg);
+        Thread.sleep(500); // Задержка для синхронизации stdout и stderr
+        // + SneakyThrows, чтобы не городить огород.
     }
 }

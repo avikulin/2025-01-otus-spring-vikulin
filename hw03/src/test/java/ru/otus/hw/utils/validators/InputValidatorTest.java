@@ -1,8 +1,6 @@
 package ru.otus.hw.utils.validators;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,13 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.otus.hw.exceptions.IncorrectAnswerException;
 import ru.otus.hw.utils.validators.base.DefaultInputValidatorImpl;
-import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
 import ru.otus.hw.utils.validators.base.contracts.InputValidator;
+import ru.otus.hw.utils.validators.config.ValidatorsContextConfiguration;
 import ru.otus.hw.utils.validators.providers.InputValidatorNegativeArgsProvider;
 import ru.otus.hw.utils.validators.providers.InputValidatorPositiveArgsProvider;
 
@@ -30,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import({DefaultInputValidatorImpl.class})
 @ActiveProfiles({"test","native"})
-@TestPropertySource(locations = "classpath:/test-application.yml")
 class InputValidatorTest {
     @Autowired
     InputValidator inputValidator;

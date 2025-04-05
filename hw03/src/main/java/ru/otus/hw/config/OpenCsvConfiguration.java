@@ -4,16 +4,13 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import ru.otus.hw.config.contracts.TestFileReaderPropertiesProvider;
+import ru.otus.hw.config.contracts.TestFileParsingPropertiesProvider;
 
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@ConfigurationProperties(prefix = "opencsv.settings")
-public class OpenCsvPropertiesProvider implements TestFileReaderPropertiesProvider {
-    String testFileName;
-
+@ConfigurationProperties(prefix = "opencsv")
+public class OpenCsvConfiguration implements TestFileParsingPropertiesProvider {
     char columnSeparationSymbol;
 
     int numberOfRowsSkipped;

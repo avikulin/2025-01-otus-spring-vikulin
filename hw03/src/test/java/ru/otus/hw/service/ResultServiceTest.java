@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.otus.hw.config.contracts.TestPropertiesProvider;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
@@ -46,7 +45,7 @@ class ResultServiceTest {
     static class TestConfig{}
 
     @MockitoBean
-    TestPropertiesProvider mockedTestPropertiesProvider;
+    ru.otus.hw.config.contracts.TestConfig mockedTestConfig;
 
     @MockitoBean
     LocalizedIOService mockedIoService;
@@ -56,7 +55,7 @@ class ResultServiceTest {
 
     @AfterEach
     public void cleanUp(){
-        reset(mockedTestPropertiesProvider, mockedIoService);
+        reset(mockedTestConfig, mockedIoService);
     }
 
     private void baseIoCheckUp(TestResult result, String testResultMessage) {
@@ -64,7 +63,7 @@ class ResultServiceTest {
         var questionCount = result.getRightAnswersCount();
         var rightAnswersCount = result.getRightAnswersCount();
 
-        InOrder orderedCalls = Mockito.inOrder(mockedIoService, mockedTestPropertiesProvider);
+        InOrder orderedCalls = Mockito.inOrder(mockedIoService, mockedTestConfig);
         orderedCalls.verify(mockedIoService, times(1)).printLineLocalized(anyString());
         orderedCalls.verify(mockedIoService).printFormattedLineLocalized(eq(MSG_CODE_TEMPLATE_STUDENT_INFO),eq(studentsFullName));
         orderedCalls.verify(mockedIoService).printFormattedLineLocalized(eq(MSG_CODE_TEMPLATE_ANSWERED_QUESTIONS_COUNT),eq(questionCount));
@@ -109,7 +108,7 @@ class ResultServiceTest {
         var sampleResult = sampleResultFactory();
 
         // настройка теста
-        when(mockedTestPropertiesProvider.getRightAnswersCountToPass()).thenReturn(2);
+        when(mockedTestConfig.getRightAnswersCountToPass()).thenReturn(2);
 
         // выполнение теста
         this.resultService.showResult(sampleResult);
@@ -125,7 +124,7 @@ class ResultServiceTest {
         var sampleResult = sampleResultFactory();
 
         // настройка теста
-        when(mockedTestPropertiesProvider.getRightAnswersCountToPass()).thenReturn(22);
+        when(mockedTestConfig.getRightAnswersCountToPass()).thenReturn(22);
 
         // выполнение теста
         this.resultService.showResult(sampleResult);

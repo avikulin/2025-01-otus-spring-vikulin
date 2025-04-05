@@ -3,19 +3,17 @@ package ru.otus.hw.service.ioservice.config;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
-import org.springframework.context.support.DelegatingMessageSource;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import ru.otus.hw.config.LocalizationServiceConfiguration;
-import ru.otus.hw.config.TestServicePropertiesProvider;
-import ru.otus.hw.config.contracts.LocaleConfig;
-import ru.otus.hw.config.contracts.TestPropertiesProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import ru.otus.hw.config.AppProperties;
+import ru.otus.hw.config.OpenCsvConfiguration;
+import ru.otus.hw.config.TestServiceConfiguration;
 import ru.otus.hw.service.io.LocalizedStreamsIOService;
-import ru.otus.hw.service.io.contracts.IOService;
 import ru.otus.hw.service.io.contracts.LocalizedIOService;
 import ru.otus.hw.service.ioservice.stub.FakeStdErr;
 import ru.otus.hw.service.ioservice.stub.FakeStdIn;
@@ -27,10 +25,12 @@ import ru.otus.hw.utils.formatters.localized.contracts.LocalizedInputFormatter;
 import ru.otus.hw.utils.validators.localized.LocalizedInputValidatorImpl;
 import ru.otus.hw.utils.validators.localized.contracts.LocalizedInputValidator;
 
+import java.util.Locale;
+
 
 @Configuration
-@Import({FakeStdErr.class, FakeStdIn.class, FakeStdOut.class})
-@EnableConfigurationProperties({TestServicePropertiesProvider.class,  LocalizationServiceConfiguration.class})
+@Import({FakeStdErr.class, FakeStdIn.class, FakeStdOut.class, AppProperties.class})
+@EnableConfigurationProperties({TestServiceConfiguration.class,  OpenCsvConfiguration.class})
 @Profile({"test","localized"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LocalizedIoStubsConfig {
@@ -46,10 +46,7 @@ public class LocalizedIoStubsConfig {
     FakeStdIn fakeStdIn;
 
     @Autowired
-    TestPropertiesProvider testPropertiesProvider;
-
-    @Autowired
-    LocaleConfig localeConfig;
+    AppProperties appConfig;
 
     @Bean("mockedLocalizedIO")
     public LocalizedIOService getMockedIO(LocalizedInputFormatter localizedInputFormatter,
@@ -60,22 +57,24 @@ public class LocalizedIoStubsConfig {
                                              fakeStdIn.getInstance(),
                                              localizedInputFormatter,
                                              inputValidator,
-                                             testPropertiesProvider,
+                                             appConfig,
                                              messagesService
         );
     }
 
     @Bean
     public MessageSource messageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasenames(RESOURCE_BUNDLE_ID); // Load messages.properties
+        var messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename(RESOURCE_BUNDLE_ID);
         messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(false);
+        messageSource.setDefaultLocale(Locale.US);
         return messageSource;
     }
 
     @Bean
     public LocalizedMessagesService getLocalizedMessagesService(MessageSource messageSource) {
-        return new LocalizedMessagesServiceImpl(this.localeConfig, messageSource);
+        return new LocalizedMessagesServiceImpl(this.appConfig.getTestServiceConfiguration(), messageSource);
     }
 
     @Bean

@@ -2,36 +2,46 @@ package ru.otus.hw.utils.factories;
 
 import com.opencsv.bean.CsvToBean;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import ru.otus.hw.config.CsvBeanConfig;
-import ru.otus.hw.config.contracts.TestFileReaderPropertiesProvider;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.config.AppProperties;
+import ru.otus.hw.config.OpenCsvConfiguration;
+import ru.otus.hw.config.TestServiceConfiguration;
+import ru.otus.hw.dao.factory.CsvBeanFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-class OpenCsvFactoryTest {
+@SpringBootTest(classes = OpenCsvFactoryTest.TestConfig.class)
+@Import({CsvBeanFactory.class, AppProperties.class})
+@TestPropertySource(properties = {"test.locale=en-US",
+                                  "test.file-name-by-locale-tag.en-US=/dao-tests/empty-file.csv"})
+class OpenCsvFactoryTest extends ConfigurableByPropertiesTestBase {
+    @Autowired
+    private CsvBeanFactory factoryBean;
 
-    @Mock
-    private TestFileReaderPropertiesProvider testFileReaderConfig;
+    @Configuration
+    @EnableConfigurationProperties({OpenCsvConfiguration.class, TestServiceConfiguration.class})
+    static class TestConfig{
+        @Autowired
+        AppProperties appProperties;
 
-    @InjectMocks
-    private CsvBeanConfig factoryBean;
-
-    @BeforeEach
-    public void setupTest(){
-        reset(testFileReaderConfig);
-        when(testFileReaderConfig.getColumnSeparationSymbol()).thenReturn(';');
-        when(testFileReaderConfig.getNumberOfRowsSkipped()).thenReturn(1);
-        when(testFileReaderConfig.getTestFileName()).thenReturn("dao-tests/empty-file.csv");
+        public AppProperties construct(){
+            var mockedProps = Mockito.mock(new AppProperties(this.appProperties.getOpenCsvConfiguration(),
+                                                             this.appProperties.getTestServiceConfiguration())
+            );
+            when(mockedProps.getTestServiceConfiguration().getTestFileName()).thenReturn("dao-tests/empty-file.csv");
+            return mockedProps;
+        }
     }
 
     @Test

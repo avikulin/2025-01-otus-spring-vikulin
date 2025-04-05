@@ -2,16 +2,12 @@ package ru.otus.hw.utils.validators.providers;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class InputValidatorPositiveArgsProvider implements ArgumentsProvider {

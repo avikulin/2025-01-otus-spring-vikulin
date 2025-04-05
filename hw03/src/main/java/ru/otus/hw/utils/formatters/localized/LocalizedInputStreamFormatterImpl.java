@@ -13,6 +13,7 @@ import ru.otus.hw.utils.formatters.localized.contracts.LocalizedInputFormatter;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LocalizedInputStreamFormatterImpl extends DefaultInputStreamFormatter implements LocalizedInputFormatter {
     static String MSG_CODE_INCORRECT_CONTENT_ERROR = "input-stream-formatter.error.incorrect-content";
+
     static String MSG_CODE_EMPTY_INPUT_STRING_ERROR = "InputStreamFormatter.error.empty-input-string";
 
     public LocalizedInputStreamFormatterImpl(LocalizedMessagesService localizedMessagesService) {
