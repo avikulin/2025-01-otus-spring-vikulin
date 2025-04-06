@@ -1,0 +1,36 @@
+spring:
+  profiles:
+    active:
+      - production
+      - localized
+
+  shell:
+    script:
+      enabled: true
+    interactive:
+      enabled: true
+
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    default-locale: en_US
+
+opencsv:
+    column-separation-symbol: ";"
+    number-of-rows-skipped: 1
+
+test:
+  locale: ru-RU
+  right-answers-count-to-pass: 3
+  max-number-of-input-data-attempts: 3
+  file-name-by-locale-tag:
+    ru-RU: questions_ru.csv
+    en-US: questions.csv
+
+logging:
+  config: classpath:/logback-spring.xml
+# Пришлось лечить Spring Shell - не стартовал, пока не был явно включен опциями выше.
+#  level:
+#    org.springframework.shell: DEBUG
+#    org.springframework.boot.autoconfigure: DEBUG
