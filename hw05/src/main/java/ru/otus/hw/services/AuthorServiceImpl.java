@@ -3,7 +3,8 @@ package ru.otus.hw.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.models.Author;
-import ru.otus.hw.repositories.AuthorRepository;
+import ru.otus.hw.repositories.contracts.AuthorRepository;
+import ru.otus.hw.services.contracts.AuthorService;
 
 import java.util.List;
 
@@ -15,5 +16,10 @@ public class AuthorServiceImpl implements AuthorService {
     @Override
     public List<Author> findAll() {
         return authorRepository.findAll();
+    }
+
+    @Override
+    public Author findById(long id) {
+        return authorRepository.findById(id).orElseThrow();
     }
 }

@@ -14,14 +14,21 @@ public class BookConverter {
     private final GenreConverter genreConverter;
 
     public String bookToString(Book book) {
+        var authorsString = book.getAuthors().stream()
+                .map(authorConverter::authorToString)
+                .collect(Collectors.joining(", "));
         var genresString = book.getGenres().stream()
                 .map(genreConverter::genreToString)
-                .map("{%s}"::formatted)
+                .map("%s"::formatted)
                 .collect(Collectors.joining(", "));
-        return "Id: %d, title: %s, author: {%s}, genres: [%s]".formatted(
+        return "[%d] %s (%d) %s\tauthors: %s%s\tgenres:  %s%s".formatted(
                 book.getId(),
                 book.getTitle(),
-                authorConverter.authorToString(book.getAuthor()),
-                genresString);
+                book.getYearOfPublished(),
+                System.lineSeparator(),
+                authorsString,
+                System.lineSeparator(),
+                genresString,
+                System.lineSeparator());
     }
 }

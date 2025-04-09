@@ -1,20 +1,18 @@
 package ru.otus.hw.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Book {
-    private long id;
-
-    private String title;
-
-    private Author author;
-
-    private List<Genre> genres;
+    @Setter
+    long id;
+    String title;
+    int yearOfPublished;
+    List<Author> authors;
+    List<Genre> genres;
 }
