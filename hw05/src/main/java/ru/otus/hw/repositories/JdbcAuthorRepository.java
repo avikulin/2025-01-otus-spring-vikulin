@@ -10,6 +10,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -46,25 +47,32 @@ public class JdbcAuthorRepository implements AuthorRepository {
 
     @Override
     public Optional<Author> findById(long id) {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
-        var filterParams = Map.of("id", id);
-        Author dataItem;
-        try{
-            dataItem = jdbc.queryForObject(
-                            "SELECT ID, FULL_NAME FROM %s.AUTHORS WHERE ID = :id"
-                                    .formatted(appConfig.getSchemaName()),
-                            filterParams,
-                            new AuthorRowMapper()
-            );
-            if (dataItem == null) {
-                throw new EntityNotFoundException("Author not found for ID: " + id);
-            }
-            return Optional.of(dataItem);
-        } catch (EmptyResultDataAccessException e) {
-            throw new EntityNotFoundException("Author not found for ID: " + id);
-        } catch (IncorrectResultSizeDataAccessException e) {
-            log.error("Database inconsistency: Multiple authors found for primary key: {}", id);
+        var dataItems = this.findAllByIds(Set.of(id));
+        if (CollectionUtils.isEmpty(dataItems)) {
+            var msg = "Author not found for ID: " + id;
+            log.info(msg);
+            throw new EntityNotFoundException(msg);
+        }
+        if (dataItems.size() > 1) {
+            log.error("Database inconsistency detected: Multiple authors found for primary key: {}", id);
             throw new MoreThanOneEntityFound("Multiple authors found for ID: " + id);
+        }
+        return Optional.of(dataItems.get(0));
+    }
+
+    @Override
+    public List<Author> findAllByIds(Set<Long> ids) {
+        Objects.requireNonNull(appConfig, "Application config can't be null");
+        var filterParams = Map.of("ids", ids);
+        List<Author> dataItems;
+        try{
+            dataItems = jdbc.query(
+                    "SELECT ID, FULL_NAME FROM %s.AUTHORS WHERE ID IN (:ids)"
+                            .formatted(appConfig.getSchemaName()),
+                    filterParams,
+                    new AuthorRowMapper()
+            );
+            return dataItems;
         } catch (DataAccessException e){
             var msg = "Something went wrong with access to DB while finding genres";
             log.error(msg, e);

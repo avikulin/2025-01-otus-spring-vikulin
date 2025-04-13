@@ -145,21 +145,29 @@ public class JdbcBookRepository implements BookRepository {
         Objects.requireNonNull(appConfig, "Application config can't be null");
         // ищем книгу
         var book = this.findById(id);
-        // зачищаем корень агрегата
+
         var params = Map.of("book_id", String.valueOf(id));
         try {
+            // зачищаем зависимые сущности
             this.jdbc.update(
+                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_AUTHORS WHERE BOOK_ID = :book_id")
+                    ,params);
+            this.jdbc.update(
+                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_GENRES WHERE BOOK_ID = :book_id")
+                    ,params);
+
+            // зачищаем корень агрегата
+            var rowsAffected = this.jdbc.update(
                     normalizeSql("DELETE FROM ${schema_name}.BOOKS WHERE ID = :book_id")
                     ,params);
+            if (rowsAffected == 0) {
+                throw new EntityNotFoundException("Book not found for ID: " + id);
+            }
         } catch (DataAccessException e){
             var msg = "Something went wrong with access to DB while deleting book with ID " + id;
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
         }
-
-        // зачищаем зависимые сущности
-        this.ge
-
     }
 
     private List<Book> getAllBooksWithoutGenres() {
@@ -256,15 +264,14 @@ public class JdbcBookRepository implements BookRepository {
     private Book insert(Book book) {
         var keyHolder = new GeneratedKeyHolder();
         var params = new BeanPropertySqlParameterSource(book);
-
         // вставляем запись корня агрегата
         try {
             var res = this.jdbc.update(
                     this.normalizeSql("INSERT INTO \n" +
-                                             "    ${schema_name}.BOOKS (ID, TITLE, YEAR_OF_PUBLISHED)\n" +
+                                             "    ${schema_name}.BOOKS (TITLE, YEAR_OF_PUBLISHED)\n" +
                                              "VALUES \n" +
-                                             "    (:id, :title, :yearOfPublished)")
-                    , params);
+                                             "    (:title, :yearOfPublished)"),
+                    params, keyHolder, new String[]{"ID"});
             if (res == 0){
                 throw new SqlCommandFailure("Insert failed due to DB error");
             }
@@ -283,7 +290,6 @@ public class JdbcBookRepository implements BookRepository {
         removeGenresRelationsFor(book);
         batchInsertGenresRelationsFor(book);
 
-        // возвращаем собранный агрегат
         return book;
     }
 
@@ -319,16 +325,18 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void batchInsertAuthorsRelationsFor(Book book) {
+
         var authorsBatch = book.getAuthors().stream()
-                .map(BeanPropertySqlParameterSource::new)
-                .toArray(SqlParameterSource[]::new);
+                                .map(a->new BookAuthorRelation(book.getId(), a.getId()))
+                                .map(BeanPropertySqlParameterSource::new)
+                                .toArray(SqlParameterSource[]::new);
         int[] results;
         try{
             results = this.jdbc.batchUpdate(
                     normalizeSql("INSERT INTO \n" +
-                                        "       ${schema_name.LNK_BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID) \n" +
+                                        "       ${schema_name}.LNK_BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID) \n" +
                                         "VALUES \n" +
-                                        "       (:bookId, :authorId)}"),
+                                        "       (:bookId, :authorId)"),
                     authorsBatch);
             var failures = Arrays.stream(results)
                     .filter(x -> x == 0)
@@ -353,15 +361,16 @@ public class JdbcBookRepository implements BookRepository {
 
     private void batchInsertGenresRelationsFor(Book book) {
         var genresBatch = book.getGenres().stream()
+                .map(g->new BookGenreRelation(book.getId(), g.getId()))
                 .map(BeanPropertySqlParameterSource::new)
                 .toArray(SqlParameterSource[]::new);
         int[] results;
         try{
             results = this.jdbc.batchUpdate(
                     normalizeSql("INSERT INTO \n" +
-                                        "       ${schema_name.LNK_BOOKS_GENRES (BOOK_ID, GENRE_ID) \n" +
+                                        "       ${schema_name}.LNK_BOOKS_GENRES (BOOK_ID, GENRE_ID) \n" +
                                         "VALUES \n" +
-                                        "       (:bookId, :genreId)}"),
+                                        "       (:bookId, :genreId)"),
                     genresBatch);
             var failures = Arrays.stream(results)
                                  .filter(x -> x == 0)

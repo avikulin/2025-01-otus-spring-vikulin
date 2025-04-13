@@ -3,6 +3,8 @@ package ru.otus.hw.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.AuthorRepository;
@@ -37,35 +39,44 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book insert(String title, long authorId, Set<Long> genresIds) {
-        return save(0, title, authorId, genresIds);
+    public Book insert(String title, int yearOfPublished, Set<Long> authorIds, Set<Long> genresIds) {
+        return save(0, title, yearOfPublished, authorIds, genresIds);
     }
 
     @Override
     @Transactional
-    public Book update(long id, String title, long authorId, Set<Long> genresIds) {
-        return save(id, title, authorId, genresIds);
+    public Book update(long id, String title,  int yearOfPublished, Set<Long> authorId, Set<Long> genresIds) {
+        return save(id, title, yearOfPublished,  authorId, genresIds);
     }
 
     @Override
+    @Transactional
     public void deleteById(long id) {
         bookRepository.deleteById(id);
     }
 
-    private Book save(long id, String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
+    private Book save(long id, String title, int yearOfPublished, Set<Long> authorIds, Set<Long> genresIds) {
+        if (!StringUtils.hasLength(title)) {
+            throw new IllegalArgumentException("Title cannot be omitted or kept empty");
+        }
+        if (yearOfPublished < 0) {
+            throw new IllegalArgumentException("Year of published cannot negative");
+        }
+        if (CollectionUtils.isEmpty(authorIds)) {
+            throw new IllegalArgumentException("Authors ids must not be null");
+        }
+        if (CollectionUtils.isEmpty(genresIds)) {
             throw new IllegalArgumentException("Genres ids must not be null");
         }
-
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+        var authors = authorRepository.findAllByIds(authorIds);
+        if (CollectionUtils.isEmpty(authors) || authorIds.size() != authors.size()) {
+            throw new EntityNotFoundException("One or all authors with ids %s not found".formatted(genresIds));
+        }
         var genres = genreRepository.findAllByIds(genresIds);
-        if (isEmpty(genres) || genresIds.size() != genres.size()) {
+        if (CollectionUtils.isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
-
-        //var book = new Book(id, title, author, genres);
-        //return bookRepository.save(book);
-        return null;
+        var book = new Book(id, title, yearOfPublished, authors, genres);
+        return bookRepository.save(book);
     }
 }

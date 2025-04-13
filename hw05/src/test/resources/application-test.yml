@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:test-db
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:/test-data.sql
+      schema-locations: classpath:/test-schema.sql
+      platform: h2
+
+catalog:
+  schema-name: otus_hw_05 # 1) Приходится городить огород потому, что мы создаем новую схему БД
+                          # 2) Новая схема нужна, чтобы не загрязнять дефолтный PUBLIC - это bad-practice
+                          # 3) Скрипт сделан идемпотентным: он сносит и пересоздает схему целиком
+  in-memory-load-threshold: 1000
