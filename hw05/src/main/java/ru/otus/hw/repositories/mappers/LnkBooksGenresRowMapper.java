@@ -1,7 +1,6 @@
 package ru.otus.hw.repositories.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
-import ru.otus.hw.models.relations.BookAuthorRelation;
 import ru.otus.hw.models.relations.BookGenreRelation;
 
 import java.sql.ResultSet;

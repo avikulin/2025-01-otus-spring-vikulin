@@ -15,21 +15,22 @@ import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.converters.AuthorConverter;
 import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.GenreConverter;
-import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.exceptions.SqlCommandFailure;
+import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.BookRepository;
-import ru.otus.hw.repositories.data.BooksArgSource;
-import ru.otus.hw.repositories.data.TestData;
+import ru.otus.hw.repositories.data.BooksArgProvider;
+import ru.otus.hw.utils.sql.SqlNormalizer;
+import ru.otus.hw.utils.validators.BookValidator;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @JdbcTest()
-@DisplayName("Testing the <Books> repository")
+@DisplayName("Negative test for the <Books> repository")
 @ContextConfiguration(classes = BookRepositoryNegativeTest.TestConfig.class)
 class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     @Autowired
@@ -37,184 +38,264 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
 
     @Configuration
     @Import({JdbcBookRepository.class, JdbcAuthorRepository.class, JdbcGenreRepository.class,
-             BookConverter.class, AuthorConverter.class, GenreConverter.class})
+            BookConverter.class, AuthorConverter.class, GenreConverter.class,
+            BookValidator.class, SqlNormalizer.class})
     @EnableConfigurationProperties(AppConfig.class)
     public static class TestConfig {}
 
+    //-----SELECT------
     @Test
     @DisplayName("Throws on trying to find by not existing ID tag")
     void throwsOnFindingByNotExistingId() {
         assertThrows(EntityNotFoundException.class, ()->bookRepository.findById(555L));
     }
 
-    @DisplayName("Throws on book's title is null")
+    @Test
+    @DisplayName("Throws on trying to find by impossible ID value")
+    void throwsOnFindingByImpossibleId() {
+        assertThrows(EntityValidationException.class, ()->bookRepository.findById(0L));
+    }
+
+    //-----UPDATE------
+    @DisplayName("Throws on updating the book's title to null")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void updateTitle(String testName, Book expected) {
-        // изменяем объект в БД
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnUpdatingTitleWithNull(String testName, Book expected) {
         expected.setTitle(null);
-        assertThrows(AppInfrastructureException.class, ()->bookRepository.save(expected));
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
     }
 
-    @DisplayName("Updating year of published")
+    @DisplayName("Throws on updating the book's title to empty string")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void updateYearOfPublished(String testName, Book expected) {
-        // изменяем объект в БД
-        expected.setYearOfPublished(expected.getYearOfPublished()+101);
-        bookRepository.save(expected);
-
-        // ищем объект в БД до ИД
-        var bookId = expected.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var book = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(expected, book);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnUpdatingTitleWithEmptyString(String testName, Book expected) {
+        expected.setTitle("");
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
     }
 
-    @DisplayName("Adding new author to the list of existing authors")
+    @DisplayName("Throws on updating the book's title to blank string")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void addAuthor(String testName, Book expected) {
-        // изменяем объект в БД
-        var newAuthor = TestData.getTestAuthors().get(2);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnUpdatingTitleWithBlankString(String testName, Book expected) {
+        expected.setTitle("        ");
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on updating the book's year of published to negative value")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnUpdatingYearOfPublishedByNegativeValue(String testName, Book expected) {
+        expected.setYearOfPublished(-1);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on updating the book's year of published to value in future")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnUpdatingYearOfPublishedByFutureYear(String testName, Book expected) {
+        var future = LocalDateTime.now().getYear() + 1;
+        expected.setYearOfPublished(future);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on adding duplicated author for the existing book")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnAddingDuplicatedAuthor(String testName, Book expected) {
+        var duplicatedAuthor = expected.getAuthors().get(0);
         var newAuthorsList = new ArrayList<>(expected.getAuthors());
-        newAuthorsList.add(newAuthor);
+        newAuthorsList.add(duplicatedAuthor);
         var newBook = new Book(expected.getId(),
                                expected.getTitle(),
                                expected.getYearOfPublished(),
                                newAuthorsList,
                                expected.getGenres()
         );
-        bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
     }
 
-    @DisplayName("Replacing the list of existing authors with new author")
+    @DisplayName("Throws on clearing the authors list of the existing book")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void replaceAuthors(String testName, Book expected) {
-        // изменяем объект в БД
-        var newAuthor = TestData.getTestAuthors().get(2);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnClearingAuthors(String testName, Book expected) {
         var newBook = new Book(expected.getId(),
                 expected.getTitle(),
                 expected.getYearOfPublished(),
-                List.of(newAuthor),
+                List.of(),
                 expected.getGenres()
         );
-        bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
     }
 
-    @DisplayName("Adding new genre to the list of existing authors")
+    @DisplayName("Throws on adding duplicated genre for the existing book")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void addGenre(String testName, Book expected) {
-        // изменяем объект в БД
-        var newGenre = TestData.getTestGenres().get(2);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnAddingDuplicatedGenre(String testName, Book expected) {
+        var duplicatedGenre = expected.getGenres().get(0);
         var newGenresList = new ArrayList<>(expected.getGenres());
-        newGenresList.add(newGenre);
+        newGenresList.add(duplicatedGenre);
         var newBook = new Book(expected.getId(),
                 expected.getTitle(),
                 expected.getYearOfPublished(),
                 expected.getAuthors(),
                 newGenresList
         );
-        bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
     }
 
-    @DisplayName("Replacing the list of existing authors with new author")
+    @DisplayName("Throws on clearing the genres list of the existing book")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void replaceGenres(String testName, Book expected) {
-        // изменяем объект в БД
-        var newGenre = TestData.getTestGenres().get(2);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnClearingGenres(String testName, Book expected) {
         var newBook = new Book(expected.getId(),
                 expected.getTitle(),
                 expected.getYearOfPublished(),
                 expected.getAuthors(),
-                List.of(newGenre)
+                List.of()
         );
-        bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
     }
 
-    @DisplayName("Inserting brand-new book into the DB")
+    //-----INSERT------
+    @DisplayName("Throws on inserting the book without title (null)")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void addNewBook(String testName, Book expected) {
-        // создаем объект в БД
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithTitleWithNull(String testName, Book expected) {
+        expected.setId(0);
+        expected.setTitle(null);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on inserting the book without title (empty string)")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithTitleWithEmptyString(String testName, Book expected) {
+        expected.setId(0);
+        expected.setTitle("");
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on inserting the book without title (blank string)")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithTitleWithBlankString(String testName, Book expected) {
+        expected.setId(0);
+        expected.setTitle("        ");
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on inserting the book, which year of published by negative value")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithYearOfPublishedByNegativeValue(String testName, Book expected) {
+        expected.setId(0);
+        expected.setYearOfPublished(-1);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+
+    @DisplayName("Throws on inserting the book, which year of published by value in future")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithYearOfPublishedByFutureYear(String testName, Book expected) {
+        expected.setId(0);
+        var future = LocalDateTime.now().getYear() + 1;
+        expected.setYearOfPublished(future);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+    }
+    @DisplayName("Throws on inserting the book with duplicated author")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithDuplicatedAuthor(String testName, Book expected) {
+        var duplicatedAuthor = expected.getAuthors().get(0);
+        var newAuthorsList = new ArrayList<>(expected.getAuthors());
+        newAuthorsList.add(duplicatedAuthor);
         var newBook = new Book(0,
-                expected.getTitle() + "-new",
-                expected.getYearOfPublished() + 101,
-                expected.getAuthors(),
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                newAuthorsList,
                 expected.getGenres()
         );
-        var bookFromDB = bookRepository.save(newBook);
-
-        // проверяем, что вернувшийся из БД объект соответствует исходным параметрам
-        var newId = bookFromDB.getId();
-        newBook.setId(newId);
-        assertEquals(newBook, bookFromDB);
-
-        // ищем старый объект в БД до ИД и проверяем, что он не изменился
-        var bookOpt = bookRepository.findById(expected.getId());
-        assertTrue(bookOpt.isPresent());
-        var notUpdatedBook = bookOpt.get();
-        assertEquals(expected, notUpdatedBook);
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
     }
 
-
-    @DisplayName("Deleting book from DB by ID tag")
+    @DisplayName("Throws on inserting the book without authors (null)")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
-    void deleteById(String testName, Book expected) {
-        // удаляем конкретную книгу
-        var bookID = expected.getId();
-        bookRepository.deleteById(bookID);
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithNullAuthors(String testName, Book expected) {
+        var newBook = new Book(0,
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                null,
+                expected.getGenres()
+        );
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+    }
 
-        // проверяем, что удалилась только она
-        var expectedListOfBooks = TestData.getTestBooks()
-                                             .stream()
-                                             .filter(book -> book.getId() != bookID)
-                                             .toList();
+    @DisplayName("Throws on inserting the book without authors (empty list)")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithEmptyAuthors(String testName, Book expected) {
+        var newBook = new Book(0,
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                List.of(),
+                expected.getGenres()
+        );
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+    }
 
-        var booksFromDB = bookRepository.findAll();
-        assertIterableEquals(expectedListOfBooks, booksFromDB);
+    @DisplayName("Throws on inserting the book with duplicated genre")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithDuplicatedGenre(String testName, Book expected) {
+        var duplicatedGenre = expected.getGenres().get(0);
+        var newGenresList = new ArrayList<>(expected.getGenres());
+        newGenresList.add(duplicatedGenre);
+        var newBook = new Book(0,
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                expected.getAuthors(),
+                newGenresList
+        );
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+    }
+
+    @DisplayName("Throws on inserting the book without genre (null)")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithNullGenres(String testName, Book expected) {
+        var newBook = new Book(expected.getId(),
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                expected.getAuthors(),
+                null
+        );
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+    }
+
+    @DisplayName("Throws on inserting the book without genre (empty list)")
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(BooksArgProvider.class)
+    void throwsOnInsertingWithEmptyGenres(String testName, Book expected) {
+        var newBook = new Book(expected.getId(),
+                expected.getTitle(),
+                expected.getYearOfPublished(),
+                expected.getAuthors(),
+                List.of()
+        );
+        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+    }
+
+    //-----DELETE------
+    @DisplayName("Throws on deleting the book, which ID is not exists")
+    @Test
+    void throwsOnDeleteByImpossibleId() {
+        assertThrows(EntityValidationException.class, ()-> bookRepository.deleteById(0L));
+    }
+
+    @DisplayName("Throws on deleting the book, which ID is not exists")
+    @Test
+    void throwsOnDeleteByIdWhichNotExists() {
+        assertThrows(EntityNotFoundException.class, ()-> bookRepository.deleteById(666L));
     }
 }

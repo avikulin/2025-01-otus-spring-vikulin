@@ -2,7 +2,6 @@ package ru.otus.hw.repositories.data;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.junit.jupiter.params.provider.Arguments;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
@@ -10,10 +9,9 @@ import ru.otus.hw.models.Genre;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TestData {
+public class TestDataProvider {
     static Map<Integer, Author> authors = Map.of(
             1, new Author(1, "Author-1"),
             2, new Author(2, "Author-2"),
@@ -25,7 +23,16 @@ public class TestData {
             3, new Genre(3,"Genre-3")
     );
 
+    public static Author getTestAuthorById(int Id){
+        return authors.get(Id);
+    }
+
+    @SuppressWarnings("unused")
     public static List<Author> getTestAuthors() {return new ArrayList<>(authors.values());}
+
+    public static Genre getTestGenreById(int Id){
+        return genres.get(Id);
+    }
 
     public static List<Genre> getTestGenres() {return new ArrayList<>(genres.values());}
 

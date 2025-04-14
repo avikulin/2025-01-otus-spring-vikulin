@@ -17,8 +17,10 @@ import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.GenreConverter;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.BookRepository;
-import ru.otus.hw.repositories.data.BooksArgSource;
-import ru.otus.hw.repositories.data.TestData;
+import ru.otus.hw.repositories.data.BooksArgProvider;
+import ru.otus.hw.repositories.data.TestDataProvider;
+import ru.otus.hw.utils.sql.SqlNormalizer;
+import ru.otus.hw.utils.validators.BookValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest()
-@DisplayName("Testing the <Books> repository")
+@DisplayName("Positive tests for the <Books> repository")
 @ContextConfiguration(classes = BookRepositoryPositiveTest.TestConfig.class)
 class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     @Autowired
@@ -34,13 +36,14 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
 
     @Configuration
     @Import({JdbcBookRepository.class, JdbcAuthorRepository.class, JdbcGenreRepository.class,
-             BookConverter.class, AuthorConverter.class, GenreConverter.class})
+             BookConverter.class, AuthorConverter.class, GenreConverter.class,
+             BookValidator.class, SqlNormalizer.class})
     @EnableConfigurationProperties(AppConfig.class)
     public static class TestConfig {}
 
-    @DisplayName("Getting certain book from DB by ID tag")
+    @DisplayName("Getting the certain book from DB by ID tag")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void findById(String testName, Book expected) {
         var bookId = expected.getId();
         var bookOpt = bookRepository.findById(bookId);
@@ -50,16 +53,16 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     }
 
     @Test
-    @DisplayName("Getting all books from DB")
+    @DisplayName("Getting all the books from DB")
     void findAll() {
-        var expected = TestData.getTestBooks();
+        var expected = TestDataProvider.getTestBooks();
         var books = bookRepository.findAll();
         assertIterableEquals(expected, books);
     }
 
-    @DisplayName("Updating book's title")
+    @DisplayName("Updating the book's title")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void updateTitle(String testName, Book expected) {
         // изменяем объект в БД
         expected.setTitle(expected.getTitle()+"-new");
@@ -75,12 +78,12 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(expected, book);
     }
 
-    @DisplayName("Updating year of published")
+    @DisplayName("Updating the book's year of published")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void updateYearOfPublished(String testName, Book expected) {
         // изменяем объект в БД
-        expected.setYearOfPublished(expected.getYearOfPublished()+101);
+        expected.setYearOfPublished(expected.getYearOfPublished()+1);
         bookRepository.save(expected);
 
         // ищем объект в БД до ИД
@@ -93,12 +96,12 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(expected, book);
     }
 
-    @DisplayName("Adding new author to the list of existing authors")
+    @DisplayName("Adding the new author to the book's list of authors")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void addAuthor(String testName, Book expected) {
         // изменяем объект в БД
-        var newAuthor = TestData.getTestAuthors().get(2);
+        var newAuthor = TestDataProvider.getTestAuthorById(3);
         var newAuthorsList = new ArrayList<>(expected.getAuthors());
         newAuthorsList.add(newAuthor);
         var newBook = new Book(expected.getId(),
@@ -119,12 +122,12 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(newBook, newBookFromDB);
     }
 
-    @DisplayName("Replacing the list of existing authors with new author")
+    @DisplayName("Replacing the book's list of existing authors with the new author")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void replaceAuthors(String testName, Book expected) {
         // изменяем объект в БД
-        var newAuthor = TestData.getTestAuthors().get(2);
+        var newAuthor = TestDataProvider.getTestAuthorById(3);
         var newBook = new Book(expected.getId(),
                 expected.getTitle(),
                 expected.getYearOfPublished(),
@@ -143,12 +146,12 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(newBook, newBookFromDB);
     }
 
-    @DisplayName("Adding new genre to the list of existing authors")
+    @DisplayName("Adding the new genre to the book's list of existing authors")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void addGenre(String testName, Book expected) {
         // изменяем объект в БД
-        var newGenre = TestData.getTestGenres().get(2);
+        var newGenre = TestDataProvider.getTestGenreById(3);
         var newGenresList = new ArrayList<>(expected.getGenres());
         newGenresList.add(newGenre);
         var newBook = new Book(expected.getId(),
@@ -169,12 +172,12 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(newBook, newBookFromDB);
     }
 
-    @DisplayName("Replacing the list of existing authors with new author")
+    @DisplayName("Replacing the book's list of existing authors with the new author")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void replaceGenres(String testName, Book expected) {
         // изменяем объект в БД
-        var newGenre = TestData.getTestGenres().get(2);
+        var newGenre = TestDataProvider.getTestGenres().get(2);
         var newBook = new Book(expected.getId(),
                 expected.getTitle(),
                 expected.getYearOfPublished(),
@@ -193,14 +196,14 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
         assertEquals(newBook, newBookFromDB);
     }
 
-    @DisplayName("Inserting brand-new book into the DB")
+    @DisplayName("Inserting the brand-new book into the DB")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void addNewBook(String testName, Book expected) {
         // создаем объект в БД
         var newBook = new Book(0,
                 expected.getTitle() + "-new",
-                expected.getYearOfPublished() + 101,
+                expected.getYearOfPublished() + 10,
                 expected.getAuthors(),
                 expected.getGenres()
         );
@@ -219,16 +222,16 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     }
 
 
-    @DisplayName("Deleting book from DB by ID tag")
+    @DisplayName("Deleting the book from DB by ID tag")
     @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgSource.class)
+    @ArgumentsSource(BooksArgProvider.class)
     void deleteById(String testName, Book expected) {
         // удаляем конкретную книгу
         var bookID = expected.getId();
         bookRepository.deleteById(bookID);
 
         // проверяем, что удалилась только она
-        var expectedListOfBooks = TestData.getTestBooks()
+        var expectedListOfBooks = TestDataProvider.getTestBooks()
                                              .stream()
                                              .filter(book -> book.getId() != bookID)
                                              .toList();

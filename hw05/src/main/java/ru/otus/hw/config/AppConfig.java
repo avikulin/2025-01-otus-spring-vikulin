@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @AllArgsConstructor
 @ConfigurationProperties(prefix = "catalog")
 public class AppConfig {
+
     String schemaName;
+
     int inMemoryLoadThreshold;
 }

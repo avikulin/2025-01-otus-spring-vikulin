@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.AuthorRepository;
@@ -16,11 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
-
 @RequiredArgsConstructor
 @Service
 public class BookServiceImpl implements BookService {
+
     private final AuthorRepository authorRepository;
 
     private final GenreRepository genreRepository;
@@ -56,18 +54,6 @@ public class BookServiceImpl implements BookService {
     }
 
     private Book save(long id, String title, int yearOfPublished, Set<Long> authorIds, Set<Long> genresIds) {
-        if (!StringUtils.hasLength(title)) {
-            throw new IllegalArgumentException("Title cannot be omitted or kept empty");
-        }
-        if (yearOfPublished < 0) {
-            throw new IllegalArgumentException("Year of published cannot negative");
-        }
-        if (CollectionUtils.isEmpty(authorIds)) {
-            throw new IllegalArgumentException("Authors ids must not be null");
-        }
-        if (CollectionUtils.isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
         var authors = authorRepository.findAllByIds(authorIds);
         if (CollectionUtils.isEmpty(authors) || authorIds.size() != authors.size()) {
             throw new EntityNotFoundException("One or all authors with ids %s not found".formatted(genresIds));

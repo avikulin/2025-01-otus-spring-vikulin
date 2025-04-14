@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class BooksArgSource implements ArgumentsProvider {
+public class BooksArgProvider implements ArgumentsProvider {
     @Override
-    public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
+    public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext){
         var names = List.of("Book with 1 author and 1 genre",
                             "Book with 2 authors and 1 genre",
                             "Book with 2 authors and 2 genres");
-        var books = TestData.getTestBooks();
+        var books = TestDataProvider.getTestBooks();
         return IntStream.range(0,books.size()).mapToObj(i -> Arguments.of(names.get(i), books.get(i)));
     }
 }

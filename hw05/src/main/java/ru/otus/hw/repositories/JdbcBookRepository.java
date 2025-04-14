@@ -4,12 +4,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringSubstitutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -19,9 +16,10 @@ import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.converters.AuthorConverter;
 import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.GenreConverter;
-import ru.otus.hw.exceptions.AppInfrastructureException;
-import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.exceptions.MoreThanOneEntityFound;
+import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.SqlCommandFailure;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
@@ -35,10 +33,9 @@ import ru.otus.hw.repositories.mappers.BookResultSetExtractor;
 import ru.otus.hw.repositories.mappers.BookRowMapper;
 import ru.otus.hw.repositories.mappers.LnkBooksAuthorsRowMapper;
 import ru.otus.hw.repositories.mappers.LnkBooksGenresRowMapper;
+import ru.otus.hw.utils.sql.contracts.CommandNormalizer;
+import ru.otus.hw.utils.validators.BookValidator;
 
-import java.beans.Statement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,53 +47,61 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JdbcBookRepository implements BookRepository {
+
     AppConfig appConfig;
+
+    CommandNormalizer normalizer;
+
     AuthorRepository authorRepository;
+
     GenreRepository genreRepository;
+
     BookConverter bookConverter;
+
     AuthorConverter authorConverter;
+
     GenreConverter genreConverter;
+
+    BookValidator bookValidator;
 
     NamedParameterJdbcTemplate jdbc;
 
-    private String normalizeSql(String rawSql) {
-        String SCHEMA_NAME_KEY = "schema_name";
-        var templateProcessor = new StringSubstitutor(Map.of(SCHEMA_NAME_KEY, appConfig.getSchemaName()));
-        return templateProcessor.replace(rawSql);
-    }
-
     @Override
     public Optional<Book> findById(long id) {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
+        if (id < 1) {
+            log.error("Trying to process impossible value as ID for find operation");
+            throw new EntityValidationException("The ID must be 1 or greater");
+        }
         var filterParams = Map.of("id", id);
-
         List<Book> dataItems;
-        try{
+        try {
             dataItems = jdbc.query(
-                normalizeSql(
-                    "SELECT\n" +
-                            "    B.ID AS BOOK_ID,\n" +
-                            "    B.TITLE AS BOOK_TITLE,\n" +
-                            "    B.YEAR_OF_PUBLISHED AS BOOK_YEAR_OF_PUBLISHED,\n" +
-                            "    A.ID AS AUTHOR_ID,\n" +
-                            "    A.FULL_NAME AS AUTHOR_FULL_NAME,\n" +
-                            "    G.ID AS GENRE_ID,\n" +
-                            "    G.NAME AS GENRE_NAME\n" +
-                            "FROM ${schema_name}.BOOKS B\n" +
-                            "    LEFT JOIN ${schema_name}.LNK_BOOKS_AUTHORS LBA\n" +
-                            "        ON b.ID = LBA.BOOK_ID\n" +
-                            "            LEFT JOIN ${schema_name}.AUTHORS A\n" +
-                            "                ON LBA.AUTHOR_ID = A.ID\n" +
-                            "    LEFT JOIN ${schema_name}.LNK_BOOKS_GENRES LBG\n" +
-                            "        ON B.ID = LBG.BOOK_ID\n" +
-                            "            LEFT JOIN ${schema_name}.GENRES G \n" +
-                            "                ON G.ID = LBG.GENRE_ID\n" +
-                            "WHERE B.ID = :id\n" +
-                            "ORDER BY B.ID, A.ID, G.ID"),
-                    filterParams,
-                    new BookResultSetExtractor()
+                this.normalizer.normalize(
+                    """
+                            SELECT
+                                B.ID AS BOOK_ID,
+                                B.TITLE AS BOOK_TITLE,
+                                B.YEAR_OF_PUBLISHED AS BOOK_YEAR_OF_PUBLISHED,
+                                A.ID AS AUTHOR_ID,
+                                A.FULL_NAME AS AUTHOR_FULL_NAME,
+                                G.ID AS GENRE_ID,
+                                G.NAME AS GENRE_NAME\s
+                            FROM ${schema_name}.BOOKS B
+                                LEFT JOIN ${schema_name}.LNK_BOOKS_AUTHORS LBA
+                                    ON b.ID = LBA.BOOK_ID
+                                        LEFT JOIN ${schema_name}.AUTHORS A
+                                            ON LBA.AUTHOR_ID = A.ID
+                                LEFT JOIN ${schema_name}.LNK_BOOKS_GENRES LBG
+                                    ON B.ID = LBG.BOOK_ID
+                                        LEFT JOIN ${schema_name}.GENRES G
+                                            ON G.ID = LBG.GENRE_ID\s
+                            WHERE B.ID = :id
+                                ORDER BY B.ID, A.ID, G.ID"""
+                ),
+                filterParams,
+                new BookResultSetExtractor()
             );
-            if (dataItems == null) {
+            if (dataItems == null || dataItems.isEmpty()) {
                 throw new EntityNotFoundException("Book not found for ID: " + id);
             }
             if (dataItems.size() > 1) {
@@ -114,7 +119,7 @@ public class JdbcBookRepository implements BookRepository {
         } catch (IncorrectResultSizeDataAccessException e) {
             log.error("Database inconsistency: Multiple authors found for primary key: {}", id);
             throw new MoreThanOneEntityFound("Multiple authors found for ID: " + id);
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while finding genres";
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -134,6 +139,7 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public Book save(Book book) {
+        this.bookValidator.validate(book);
         if (book.getId() == 0) {
             return insert(book);
         }
@@ -142,28 +148,33 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public void deleteById(long id) {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
-        // ищем книгу
-        var book = this.findById(id);
-
+        if (id < 1) {
+            log.error("Trying to process impossible value as ID for delete operation");
+            throw new EntityValidationException("The ID must be 1 or greater");
+        }
         var params = Map.of("book_id", String.valueOf(id));
         try {
-            // зачищаем зависимые сущности
+            // зачищаем зависимые сущности. Если такой книги нет - то запросы не нарушат согласованности данных.
             this.jdbc.update(
-                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_AUTHORS WHERE BOOK_ID = :book_id")
-                    ,params);
-            this.jdbc.update(
-                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_GENRES WHERE BOOK_ID = :book_id")
-                    ,params);
-
+                this.normalizer.normalize(
+                    """
+                             DELETE FROM ${schema_name}.LNK_BOOKS_AUTHORS WHERE BOOK_ID = :book_id;
+                             DELETE FROM ${schema_name}.LNK_BOOKS_GENRES  WHERE BOOK_ID = :book_id"""
+                ),
+                params
+            );
             // зачищаем корень агрегата
             var rowsAffected = this.jdbc.update(
-                    normalizeSql("DELETE FROM ${schema_name}.BOOKS WHERE ID = :book_id")
-                    ,params);
+                this.normalizer.normalize(
+                    """
+                            DELETE FROM ${schema_name}.BOOKS\s
+                            WHERE ID = :book_id"""
+                    ),params
+            );
             if (rowsAffected == 0) {
                 throw new EntityNotFoundException("Book not found for ID: " + id);
             }
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while deleting book with ID " + id;
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -175,17 +186,20 @@ public class JdbcBookRepository implements BookRepository {
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
             return jdbc.query(
-                    normalizeSql("SELECT \n" +
-                                        "       ID, \n" +
-                                        "       TITLE, \n" +
-                                        "       YEAR_OF_PUBLISHED \n" +
-                                        "FROM \n" +
-                                        "       ${schema_name}.BOOKS \n" +
-                                        "LIMIT :threshold"),
-                    params,
-                    new BookRowMapper()
+                this.normalizer.normalize(
+                    """
+                            SELECT
+                                   ID,
+                                   TITLE,
+                                   YEAR_OF_PUBLISHED\s
+                            FROM
+                                   ${schema_name}.BOOKS\s
+                            LIMIT :threshold"""
+                ),
+                params,
+                new BookRowMapper()
             );
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while getting books";
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -196,15 +210,20 @@ public class JdbcBookRepository implements BookRepository {
         Objects.requireNonNull(appConfig, "Application config can't be null");
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
-            return jdbc.query(normalizeSql("SELECT \n" +
-                                                  "     BOOK_ID, \n" +
-                                                  "     GENRE_ID \n" +
-                                                  "FROM \n" +
-                                                  "     ${schema_name}.LNK_BOOKS_GENRES \n" +
-                                                  "LIMIT :threshold"),
+            return jdbc.query(
+                this.normalizer.normalize(
+                    """
+                            SELECT
+                                 BOOK_ID,
+                                 GENRE_ID\s
+                            FROM
+                                 ${schema_name}.LNK_BOOKS_GENRES\s
+                            LIMIT :threshold"""
+                ),
                 params,
-                new LnkBooksGenresRowMapper());
-        } catch (DataAccessException e){
+                new LnkBooksGenresRowMapper()
+            );
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while getting books-to-genres relations";
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -216,15 +235,19 @@ public class JdbcBookRepository implements BookRepository {
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
             return jdbc.query(
-                    normalizeSql("SELECT \n" +
-                                        "   BOOK_ID, \n" +
-                                        "   AUTHOR_ID \n" +
-                                        "FROM \n" +
-                                        "   ${schema_name}.LNK_BOOKS_AUTHORS \n" +
-                                        "LIMIT :threshold"),
-                    params,
-                    new LnkBooksAuthorsRowMapper());
-        } catch (DataAccessException e){
+                this.normalizer.normalize(
+                    """
+                            SELECT
+                               BOOK_ID,
+                               AUTHOR_ID\s
+                            FROM
+                               ${schema_name}.LNK_BOOKS_AUTHORS\s
+                            LIMIT :threshold"""
+                ),
+                params,
+                new LnkBooksAuthorsRowMapper()
+            );
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while getting books-to-authors relations";
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -253,7 +276,7 @@ public class JdbcBookRepository implements BookRepository {
                                                                                     toList()
                                                                             )
                                                                     ));
-        for(var book : booksWithoutGenres) {
+        for (var book : booksWithoutGenres) {
             var authorsList = authorRelationsDict.get(book.getId()).stream().map(authorsDict::get).toList();
             var genresList = genresRelationDict.get(book.getId()).stream().map(genresDict::get).toList();
             book.getAuthors().addAll(authorsList);
@@ -267,15 +290,21 @@ public class JdbcBookRepository implements BookRepository {
         // вставляем запись корня агрегата
         try {
             var res = this.jdbc.update(
-                    this.normalizeSql("INSERT INTO \n" +
-                                             "    ${schema_name}.BOOKS (TITLE, YEAR_OF_PUBLISHED)\n" +
-                                             "VALUES \n" +
-                                             "    (:title, :yearOfPublished)"),
-                    params, keyHolder, new String[]{"ID"});
-            if (res == 0){
+                this.normalizer.normalize(
+                    """
+                            INSERT INTO
+                                ${schema_name}.BOOKS (TITLE, YEAR_OF_PUBLISHED)\s
+                            VALUES
+                                (:title, :yearOfPublished)"""
+                ),
+                params,
+                keyHolder,
+                new String[] {"ID"}
+            );
+            if (res == 0) {
                 throw new SqlCommandFailure("Insert failed due to DB error");
             }
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB " +
                     "while inserting the book: " + this.bookConverter.bookToString(book);
             log.error(msg, e);
@@ -298,18 +327,22 @@ public class JdbcBookRepository implements BookRepository {
         var params = new BeanPropertySqlParameterSource(book);
         try {
             var res = this.jdbc.update(
-                           this.normalizeSql("UPDATE \n" +
-                                                    "    ${schema_name}.BOOKS \n" +
-                                                    "SET \n" +
-                                                    "    TITLE = :title, \n" +
-                                                    "    YEAR_OF_PUBLISHED = :yearOfPublished \n" +
-                                                    "WHERE \n" +
-                                                    "    ID = :id"), params);
-            if (res == 0){
+                this.normalizer.normalize(
+                    """
+                            UPDATE
+                                ${schema_name}.BOOKS\s
+                            SET
+                                TITLE = :title,
+                                YEAR_OF_PUBLISHED = :yearOfPublished\s
+                            WHERE
+                                ID = :id"""),
+                params
+            );
+            if (res == 0) {
                 throw new EntityNotFoundException("Update failed due to book with ID %s was not found"
                                                   .formatted(book.getId()));
             }
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB " +
                       "while updating the book with ID " + book.getId();
             log.error(msg, e);
@@ -327,20 +360,23 @@ public class JdbcBookRepository implements BookRepository {
     private void batchInsertAuthorsRelationsFor(Book book) {
 
         var authorsBatch = book.getAuthors().stream()
-                                .map(a->new BookAuthorRelation(book.getId(), a.getId()))
+                                .map(a -> new BookAuthorRelation(book.getId(), a.getId()))
                                 .map(BeanPropertySqlParameterSource::new)
                                 .toArray(SqlParameterSource[]::new);
         int[] results;
-        try{
+        try {
             results = this.jdbc.batchUpdate(
-                    normalizeSql("INSERT INTO \n" +
-                                        "       ${schema_name}.LNK_BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID) \n" +
-                                        "VALUES \n" +
-                                        "       (:bookId, :authorId)"),
-                    authorsBatch);
+                this.normalizer.normalize(
+                    """
+                            INSERT INTO
+                               ${schema_name}.LNK_BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID)\s
+                            VALUES
+                                   (:bookId, :authorId)"""),
+                    authorsBatch
+            );
             var failures = Arrays.stream(results)
                     .filter(x -> x == 0)
-                    .mapToObj(i->book.getAuthors().get(i))
+                    .mapToObj(i -> book.getAuthors().get(i))
                     .toList();
             if (!failures.isEmpty()) {
                 var authorsErrors = failures.stream()
@@ -350,7 +386,7 @@ public class JdbcBookRepository implements BookRepository {
                         "were not inserted due to DB error:%s").formatted(book.getId(), authorsErrors);
                 throw new SqlCommandFailure(msg);
             }
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while batch " +
                       "inserting genres for book with ID " + book.getId();
             log.error(msg, e);
@@ -361,20 +397,23 @@ public class JdbcBookRepository implements BookRepository {
 
     private void batchInsertGenresRelationsFor(Book book) {
         var genresBatch = book.getGenres().stream()
-                .map(g->new BookGenreRelation(book.getId(), g.getId()))
+                .map(g -> new BookGenreRelation(book.getId(), g.getId()))
                 .map(BeanPropertySqlParameterSource::new)
                 .toArray(SqlParameterSource[]::new);
         int[] results;
-        try{
+        try {
             results = this.jdbc.batchUpdate(
-                    normalizeSql("INSERT INTO \n" +
-                                        "       ${schema_name}.LNK_BOOKS_GENRES (BOOK_ID, GENRE_ID) \n" +
-                                        "VALUES \n" +
-                                        "       (:bookId, :genreId)"),
-                    genresBatch);
+                this.normalizer.normalize(
+                    """
+                            INSERT INTO
+                               ${schema_name}.LNK_BOOKS_GENRES (BOOK_ID, GENRE_ID)\s
+                            VALUES\s
+                               (:bookId, :genreId)"""),
+                genresBatch
+            );
             var failures = Arrays.stream(results)
                                  .filter(x -> x == 0)
-                                 .mapToObj(i->book.getGenres().get(i))
+                                 .mapToObj(i -> book.getGenres().get(i))
                                  .toList();
             if (!failures.isEmpty()) {
                 var genresErrors = failures.stream()
@@ -384,7 +423,7 @@ public class JdbcBookRepository implements BookRepository {
                            "were not inserted due to DB error:%s").formatted(book.getId(), genresErrors);
                 throw new SqlCommandFailure(msg);
             }
-        } catch (DataAccessException e){
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while batch " +
                       "inserting genres for book with ID " + book.getId();
             log.error(msg, e);
@@ -398,9 +437,13 @@ public class JdbcBookRepository implements BookRepository {
         var params = Map.of("book_id", String.valueOf(book.getId()));
         try {
             this.jdbc.update(
-                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_GENRES WHERE BOOK_ID = :book_id")
-                    ,params);
-        } catch (DataAccessException e){
+                this.normalizer.normalize(
+                    """
+                             DELETE FROM ${schema_name}.LNK_BOOKS_GENRES\s
+                             WHERE BOOK_ID = :book_id""")
+                ,params
+            );
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while clearing genres for book with ID " + book.getId();
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);
@@ -413,9 +456,13 @@ public class JdbcBookRepository implements BookRepository {
         var params = Map.of("book_id", String.valueOf(book.getId()));
         try {
             this.jdbc.update(
-                    normalizeSql("DELETE FROM ${schema_name}.LNK_BOOKS_AUTHORS WHERE BOOK_ID = :book_id")
-                    ,params);
-        } catch (DataAccessException e){
+                this.normalizer.normalize(
+                    """
+                             DELETE FROM ${schema_name}.LNK_BOOKS_AUTHORS\s
+                             WHERE BOOK_ID = :book_id""")
+                ,params
+            );
+        } catch (DataAccessException e) {
             var msg = "Something went wrong with access to DB while clearing authors for book with ID " + book.getId();
             log.error(msg, e);
             throw new AppInfrastructureException(msg, e);

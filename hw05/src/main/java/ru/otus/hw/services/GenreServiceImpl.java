@@ -15,6 +15,7 @@ import java.util.Set;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GenreServiceImpl implements GenreService {
+
     GenreRepository genreRepository;
 
     @Override
