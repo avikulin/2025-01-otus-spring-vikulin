@@ -15,6 +15,7 @@ import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.converters.AuthorConverter;
 import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.GenreConverter;
+import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.models.Book;
@@ -62,7 +63,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     @ArgumentsSource(BooksArgProvider.class)
     void throwsOnUpdatingTitleWithNull(String testName, Book expected) {
         expected.setTitle(null);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
     @DisplayName("Throws on updating the book's title to empty string")
@@ -70,15 +71,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     @ArgumentsSource(BooksArgProvider.class)
     void throwsOnUpdatingTitleWithEmptyString(String testName, Book expected) {
         expected.setTitle("");
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
-    }
-
-    @DisplayName("Throws on updating the book's title to blank string")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnUpdatingTitleWithBlankString(String testName, Book expected) {
-        expected.setTitle("        ");
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
     @DisplayName("Throws on updating the book's year of published to negative value")
@@ -86,16 +79,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     @ArgumentsSource(BooksArgProvider.class)
     void throwsOnUpdatingYearOfPublishedByNegativeValue(String testName, Book expected) {
         expected.setYearOfPublished(-1);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
-    }
-
-    @DisplayName("Throws on updating the book's year of published to value in future")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnUpdatingYearOfPublishedByFutureYear(String testName, Book expected) {
-        var future = LocalDateTime.now().getYear() + 1;
-        expected.setYearOfPublished(future);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
     @DisplayName("Throws on adding duplicated author for the existing book")
@@ -111,20 +95,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
                                newAuthorsList,
                                expected.getGenres()
         );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on clearing the authors list of the existing book")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnClearingAuthors(String testName, Book expected) {
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                List.of(),
-                expected.getGenres()
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(newBook));
     }
 
     @DisplayName("Throws on adding duplicated genre for the existing book")
@@ -140,20 +111,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
                 expected.getAuthors(),
                 newGenresList
         );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on clearing the genres list of the existing book")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnClearingGenres(String testName, Book expected) {
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                expected.getAuthors(),
-                List.of()
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(newBook));
     }
 
     //-----INSERT------
@@ -163,7 +121,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     void throwsOnInsertingWithTitleWithNull(String testName, Book expected) {
         expected.setId(0);
         expected.setTitle(null);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
     @DisplayName("Throws on inserting the book without title (empty string)")
@@ -172,16 +130,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     void throwsOnInsertingWithTitleWithEmptyString(String testName, Book expected) {
         expected.setId(0);
         expected.setTitle("");
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
-    }
-
-    @DisplayName("Throws on inserting the book without title (blank string)")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithTitleWithBlankString(String testName, Book expected) {
-        expected.setId(0);
-        expected.setTitle("        ");
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
     @DisplayName("Throws on inserting the book, which year of published by negative value")
@@ -190,18 +139,9 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
     void throwsOnInsertingWithYearOfPublishedByNegativeValue(String testName, Book expected) {
         expected.setId(0);
         expected.setYearOfPublished(-1);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(expected));
     }
 
-    @DisplayName("Throws on inserting the book, which year of published by value in future")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithYearOfPublishedByFutureYear(String testName, Book expected) {
-        expected.setId(0);
-        var future = LocalDateTime.now().getYear() + 1;
-        expected.setYearOfPublished(future);
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(expected));
-    }
     @DisplayName("Throws on inserting the book with duplicated author")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
@@ -215,33 +155,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
                 newAuthorsList,
                 expected.getGenres()
         );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on inserting the book without authors (null)")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithNullAuthors(String testName, Book expected) {
-        var newBook = new Book(0,
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                null,
-                expected.getGenres()
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on inserting the book without authors (empty list)")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithEmptyAuthors(String testName, Book expected) {
-        var newBook = new Book(0,
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                List.of(),
-                expected.getGenres()
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(newBook));
     }
 
     @DisplayName("Throws on inserting the book with duplicated genre")
@@ -257,33 +171,7 @@ class BookRepositoryNegativeTest extends ConfigurableByPropertiesTestBase {
                 expected.getAuthors(),
                 newGenresList
         );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on inserting the book without genre (null)")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithNullGenres(String testName, Book expected) {
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                expected.getAuthors(),
-                null
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
-    }
-
-    @DisplayName("Throws on inserting the book without genre (empty list)")
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(BooksArgProvider.class)
-    void throwsOnInsertingWithEmptyGenres(String testName, Book expected) {
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                expected.getAuthors(),
-                List.of()
-        );
-        assertThrows(EntityValidationException.class, ()-> bookRepository.save(newBook));
+        assertThrows(AppInfrastructureException.class, ()-> bookRepository.save(newBook));
     }
 
     //-----DELETE------

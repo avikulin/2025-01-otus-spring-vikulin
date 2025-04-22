@@ -16,10 +16,10 @@ import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.converters.AuthorConverter;
 import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.converters.GenreConverter;
+import ru.otus.hw.exceptions.AppInfrastructureException;
+import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.exceptions.MoreThanOneEntityFound;
-import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.SqlCommandFailure;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
@@ -34,9 +34,12 @@ import ru.otus.hw.repositories.mappers.BookRowMapper;
 import ru.otus.hw.repositories.mappers.LnkBooksAuthorsRowMapper;
 import ru.otus.hw.repositories.mappers.LnkBooksGenresRowMapper;
 import ru.otus.hw.utils.sql.contracts.CommandNormalizer;
-import ru.otus.hw.utils.validators.BookValidator;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.mapping;
@@ -61,8 +64,6 @@ public class JdbcBookRepository implements BookRepository {
     AuthorConverter authorConverter;
 
     GenreConverter genreConverter;
-
-    BookValidator bookValidator;
 
     NamedParameterJdbcTemplate jdbc;
 
@@ -139,7 +140,6 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public Book save(Book book) {
-        this.bookValidator.validate(book);
         if (book.getId() == 0) {
             return insert(book);
         }
@@ -182,7 +182,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private List<Book> getAllBooksWithoutGenres() {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
             return jdbc.query(
@@ -207,7 +206,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private List<BookGenreRelation> getAllGenreRelations() {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
             return jdbc.query(
@@ -231,7 +229,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private List<BookAuthorRelation> getAllAuthorRelations() {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
         var params = Map.of("threshold", this.appConfig.getInMemoryLoadThreshold());
         try {
             return jdbc.query(
@@ -358,7 +355,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void batchInsertAuthorsRelationsFor(Book book) {
-
         var authorsBatch = book.getAuthors().stream()
                                 .map(a -> new BookAuthorRelation(book.getId(), a.getId()))
                                 .map(BeanPropertySqlParameterSource::new)
@@ -432,7 +428,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void removeGenresRelationsFor(Book book) {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
         Objects.requireNonNull(book, "Book can't be null");
         var params = Map.of("book_id", String.valueOf(book.getId()));
         try {
@@ -451,7 +446,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private void removeAuthorsRelationsFor(Book book) {
-        Objects.requireNonNull(appConfig, "Application config can't be null");
         Objects.requireNonNull(book, "Book can't be null");
         var params = Map.of("book_id", String.valueOf(book.getId()));
         try {

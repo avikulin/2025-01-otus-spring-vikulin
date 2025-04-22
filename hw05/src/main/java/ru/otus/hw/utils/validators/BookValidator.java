@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 public class BookValidator implements EntityValidator {
 
     BookConverter bookConverter;
+
     @Override
     public void validate(CatalogEntity entity) {
         var book = (Book)entity;

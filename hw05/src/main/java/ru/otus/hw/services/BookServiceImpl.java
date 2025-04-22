@@ -1,6 +1,8 @@
 package ru.otus.hw.services;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -10,20 +12,24 @@ import ru.otus.hw.repositories.contracts.AuthorRepository;
 import ru.otus.hw.repositories.contracts.BookRepository;
 import ru.otus.hw.repositories.contracts.GenreRepository;
 import ru.otus.hw.services.contracts.BookService;
+import ru.otus.hw.utils.validators.BookValidator;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BookServiceImpl implements BookService {
 
-    private final AuthorRepository authorRepository;
+    AuthorRepository authorRepository;
 
-    private final GenreRepository genreRepository;
+    GenreRepository genreRepository;
 
-    private final BookRepository bookRepository;
+    BookRepository bookRepository;
+
+    BookValidator bookValidator;
 
     @Override
     public Optional<Book> findById(long id) {
@@ -63,6 +69,7 @@ public class BookServiceImpl implements BookService {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
         var book = new Book(id, title, yearOfPublished, authors, genres);
+        this.bookValidator.validate(book); // если что не так - вывалится ValidationException
         return bookRepository.save(book);
     }
 }

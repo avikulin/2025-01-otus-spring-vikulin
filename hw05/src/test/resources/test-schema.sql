@@ -25,7 +25,8 @@ CREATE TABLE OTUS_HW_05.BOOKS (
     TITLE VARCHAR(255) NOT NULL,
     YEAR_OF_PUBLISHED INTEGER NOT NULL ,
     PRIMARY KEY (ID),
-    CONSTRAINT chk_books_title_length CHECK (char_length(TITLE) > 0 AND char_length(TITLE) <= 255)
+    CONSTRAINT chk_books_title_length CHECK (char_length(TITLE) > 0 AND char_length(TITLE) <= 255),
+    CONSTRAINT chk_books_year_of_published_is_positive CHECK (YEAR_OF_PUBLISHED > 0)
 );
 
 CREATE TABLE OTUS_HW_05.LNK_BOOKS_AUTHORS (
