@@ -13,11 +13,25 @@ spring:
     hibernate:
       ddl-auto: validate
     generate-ddl: true
-    show-sql: true
+    show-sql: false
+
     properties:
       hibernate:
         format_sql: true
         default_schema: OTUS_HW_06
+        type: TRACE
+        use_sql_comments: true
+
   sql:
     init:
       mode: always
+
+logging:
+  config: classpath:/logback-spring.xml
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: TRACE

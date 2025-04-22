@@ -64,15 +64,21 @@ public class JpaBookRepository implements BookRepository {
         try {
             // сохраняем преемственность по отношению к предыдущему ДЗ:
             // там коллекцию агрегатов получали через композицию отдельных запросов
-            //var fetchGraph = this.entityManager.getEntityGraph("book-aggregate");
+            var fetchGraph = this.entityManager.getEntityGraph("book-aggregate");
             var query = this.entityManager.createQuery("""
                                                         SELECT
                                                             b
                                                         FROM
                                                             Book b
                                                         """, Book.class);
-            //query.setHint("jakarta.persistence.fetchgraph", fetchGraph);
-            return query.getResultList();
+            var books = query.getResultList();
+            query.setHint("jakarta.persistence.fetchgraph", fetchGraph);
+            if (!books.isEmpty()) { // заставляем инициализировать вложенные коллекции
+                books.get(0).getAuthors().size();
+                books.get(0).getGenres().size();
+                books.get(0).getComments().size();
+            }
+            return books;
         } catch (PersistenceException e) {
             var msg = "Something went wrong with access to DB while finding genres";
             log.error(msg, e);

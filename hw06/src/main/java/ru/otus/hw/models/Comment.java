@@ -16,7 +16,7 @@ import java.util.List;
 public class Comment implements CatalogEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Exclude // канает только бизне-ключ
+    @EqualsAndHashCode.Exclude // канает только бизнес-ключ
     long id;
 
     @Column(name = "BOOK_ID", nullable = false)
