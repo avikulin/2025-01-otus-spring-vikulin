@@ -3,7 +3,6 @@ package ru.otus.hw.utils.validators;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -11,17 +10,20 @@ import ru.otus.hw.converters.BookConverter;
 import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.contracts.CatalogEntity;
+import ru.otus.hw.utils.factories.exceptions.contracts.LoggedExceptionFactory;
 import ru.otus.hw.utils.validators.contracts.EntityValidator;
 
 import java.time.LocalDateTime;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BookValidator implements EntityValidator {
 
     BookConverter bookConverter;
+
+    LoggedExceptionFactory exceptionFactory;
+
     @Override
     public void validate(CatalogEntity entity) {
         var book = (Book)entity;
@@ -33,47 +35,45 @@ public class BookValidator implements EntityValidator {
         checkGenresValidity(book, bookStr);
     }
 
-    private static void checkTitleValidity(Book book, String bookStr) {
+    private void checkTitleValidity(Book book, String bookStr) {
         if (!StringUtils.hasText(book.getTitle())) {
-            log.error("Validation error: Empty title in book: {}", bookStr);
-            throw new EntityValidationException("Title cannot be omitted or kept empty");
+            exceptionFactory.logAndThrow("Validation error: Empty title in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
     }
 
-    private static void checkYearOfPublishedValidity(Book book, String bookStr) {
+    private void checkYearOfPublishedValidity(Book book, String bookStr) {
         if (book.getYearOfPublished() < 0) {
-            log.error("Validation error: Negative year of published in book: {}", bookStr);
-            throw new EntityValidationException("Year of published cannot be negative");
+            exceptionFactory.logAndThrow("Validation error: Negative year of published in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
         if (book.getYearOfPublished() > LocalDateTime.now().getYear()) {
-            log.error("Validation error: Value year of published is in future in book: {}", bookStr);
-            throw new EntityValidationException("Year of published cannot be in future");
+            exceptionFactory.logAndThrow(("Validation error: Value year of published is in future " +
+                                          "in book: %s").formatted(bookStr), EntityValidationException.class);
         }
     }
 
-    private static void checkAuthorsValidity(Book book, String bookStr) {
+    private void checkAuthorsValidity(Book book, String bookStr) {
         var authors = book.getAuthors();
         if (CollectionUtils.isEmpty(authors)) {
-            log.error("Validation error: Empty authors collection in book: {}", bookStr);
-            throw new EntityValidationException("Authors must not be an empty collection");
+            exceptionFactory.logAndThrow("Validation error: Empty authors collection in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
         if (authors.size() != authors.stream().distinct().count()) {
-            log.error("Validation error: Duplicated author(s) found in book: {}", bookStr);
-            throw new EntityValidationException("Authors must be unique");
+            exceptionFactory.logAndThrow("Validation error: Duplicated author(s) found in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
     }
 
-    private static void checkGenresValidity(Book book, String bookStr) {
+    private void checkGenresValidity(Book book, String bookStr) {
         var genres = book.getGenres();
         if (CollectionUtils.isEmpty(genres)) {
-            log.error("Validation error: Empty genres collection in book: {}", bookStr);
-            throw new EntityValidationException("Genres must not be an empty collection");
+            exceptionFactory.logAndThrow("Validation error: Empty genres collection in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
         if (genres.size() != genres.stream().distinct().count()) {
-            log.error("Validation error: Duplicated genre(s) found in book: {}", bookStr);
-            throw new EntityValidationException("Authors must be unique");
+            exceptionFactory.logAndThrow("Validation error: Duplicated genre(s) found in book: %s".formatted(bookStr),
+                                         EntityValidationException.class);
         }
     }
-
-
 }

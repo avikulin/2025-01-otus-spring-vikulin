@@ -28,7 +28,7 @@ public class CommentCommands {
         return this.commentConverter.commentToString(commentObj);
     }
 
-    @ShellMethod(value = "List all comments of the book, defined by it's ID", key = "ls-book-comment")
+    @ShellMethod(value = "List all comments of the book, defined by it's ID", key = "ls-comment")
     String getAllCommentsForBookById(Long bookId) {
         var comments = this.commentsService.findAllByBookId(bookId);
         return comments.stream()
@@ -37,14 +37,14 @@ public class CommentCommands {
                        + System.lineSeparator();
     }
 
-    @ShellMethod(value="Put new comment on book, defined by it's ID", key="put-comment")
+    @ShellMethod(value = "Put new comment on book, defined by it's ID", key = "add-comment")
     String putCommentToBookById(Long bookId, String commentText) {
         var comment = this.commentsService.insert(bookId, commentText);
         return this.commentConverter.commentToString(comment);
     }
 
 
-    @ShellMethod(value="Update an existing comment, defined by it's ID", key="update-comment")
+    @ShellMethod(value = "Update an existing comment, defined by it's ID", key = "upd-comment")
     String updateCommentById(Long id, String commentText) {
         var comment = this.commentsService.update(id, commentText);
         return this.commentConverter.commentToString(comment);

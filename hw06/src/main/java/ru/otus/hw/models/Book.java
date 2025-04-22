@@ -16,22 +16,27 @@ import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import ru.otus.hw.models.contracts.CatalogEntity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "BOOKS")
 @NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NamedEntityGraph(name = "book-aggregate",
                   attributeNodes = {
@@ -54,15 +59,19 @@ import java.util.Set;
                         )
                   }
 )
+@DynamicUpdate // чтобы не тащить из БД все коллекции при апдейте рута
 public class Book implements CatalogEntity {
     @Id
+    @NonNull //некрасиво, но необходимо для RequiredArgsConstructor
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Exclude // канает только бизнес-ключ
     long id;
 
+    @NonNull //некрасиво, но необходимо для RequiredArgsConstructor
     @Column(name = "TITLE", nullable = false)
     String title;
 
+    @NonNull //некрасиво, но необходимо для RequiredArgsConstructor
     @Column(name = "YEAR_OF_PUBLISHED", nullable = false)
     int yearOfPublished;
 
@@ -73,7 +82,7 @@ public class Book implements CatalogEntity {
     @BatchSize(size = 10) // по хорошему надо бы 100 - но для примера пойдет и так....
     @EqualsAndHashCode.Exclude  // канает только бизнес-ключ
     @ToString.Exclude // чтобы не тащить из БД на каждом запросе
-    Set<Author> authors;
+    Set<Author> authors = new HashSet<>(); //инициализируем статически. В конструкторах этого параметра не будет.
 
 
     @ManyToMany(targetEntity = Genre.class, fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
@@ -83,10 +92,12 @@ public class Book implements CatalogEntity {
     @BatchSize(size = 10) // по хорошему надо бы 100 - но для примера пойдет и так....
     @EqualsAndHashCode.Exclude  // канает только бизнес-ключ
     @ToString.Exclude // чтобы не тащить из БД на каждом запросе
-    Set<Genre> genres;
+    Set<Genre> genres = new HashSet<>(); //инициализируем статически. В конструкторах этого параметра не будет.
 
-    @OneToMany(targetEntity = Comment.class, fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, orphanRemoval = true)
+    // при удалении книги - комменты хранить тоже смысла нет.
+    @OneToMany(targetEntity = Comment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "BOOK_ID")
     @BatchSize(size = 10) // по хорошему надо бы 100 - но для примера пойдет и так....
-    Set<Comment> comments;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    Set<Comment> comments = new HashSet<>(); //инициализируем статически. В конструкторах этого параметра не будет.
 }

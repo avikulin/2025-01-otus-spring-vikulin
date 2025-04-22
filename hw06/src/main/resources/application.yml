@@ -12,6 +12,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
     generate-ddl: true
     show-sql: false
 
@@ -21,6 +22,11 @@ spring:
         default_schema: OTUS_HW_06
         type: TRACE
         use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          order_inserts: true
+          order_updates: true
+        show_sql: false
 
   sql:
     init:

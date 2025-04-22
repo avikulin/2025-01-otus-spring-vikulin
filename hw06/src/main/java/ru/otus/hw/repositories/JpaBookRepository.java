@@ -1,10 +1,14 @@
 package ru.otus.hw.repositories;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
 import org.springframework.stereotype.Repository;
 import ru.otus.hw.exceptions.AppInfrastructureException;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -12,11 +16,12 @@ import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.exceptions.MoreThanOneEntityFound;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.BookRepository;
+import ru.otus.hw.utils.factories.exceptions.contracts.LoggedExceptionFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -25,14 +30,17 @@ public class JpaBookRepository implements BookRepository {
     @PersistenceContext
     EntityManager entityManager;
 
+    LoggedExceptionFactory exceptionFactory;
+
     @Override
+    // сохраняем преемственность по отношению к предыдущему ДЗ: там единичный агрегат получали через JOIN
     public Optional<Book> findById(long id) {
         if (id < 1) {
-            log.error("Trying to process impossible value as ID for find operation");
-            throw new EntityValidationException("The ID must be 1 or greater");
+            exceptionFactory.logAndThrow("Trying to process impossible value " +
+                                              "as ID for find operation", id, EntityValidationException.class);
         }
+        Book result = null;
         try {
-            // сохраняем преемственность по отношению к предыдущему ДЗ: там единичный агрегат получали через JOIN
             var query = this.entityManager.createQuery("""
                                                         SELECT
                                                             b
@@ -43,27 +51,25 @@ public class JpaBookRepository implements BookRepository {
                                                         WHERE
                                                             b.id = :id""", Book.class);
             query.setParameter("id", id);
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e){
-            var msg = "No book found with id = %d".formatted(id);
-            log.error(msg, e);
-            throw new EntityNotFoundException(msg, e);
-        } catch (NonUniqueResultException e){
-            var msg = "More than one book found with id = %d".formatted(id);
-            log.error(msg, e);
-            throw new MoreThanOneEntityFound(msg);
+            result = query.getSingleResult();
+        } catch (NoResultException e) {
+            exceptionFactory.logAndThrow("No book found with id = %d", id, EntityNotFoundException.class, e);
+        } catch (NonUniqueResultException e) {
+            exceptionFactory.logAndThrow("More than one book found with id = %d", id,
+                                              MoreThanOneEntityFound.class, e);
         } catch (PersistenceException e) {
-            var msg = "Something went wrong with access to DB while finding book";
-            log.error(msg, e);
-            throw new AppInfrastructureException(msg);
+            exceptionFactory.logAndThrow("Something went wrong with access to DB " +
+                                              "while finding book", AppInfrastructureException.class, e);
         }
+        return Optional.ofNullable(result);
     }
 
     @Override
+    // сохраняем преемственность по отношению к предыдущему ДЗ:
+    // там коллекцию агрегатов получали через композицию отдельных запросов
     public List<Book> findAll() {
+        List<Book> result = null;
         try {
-            // сохраняем преемственность по отношению к предыдущему ДЗ:
-            // там коллекцию агрегатов получали через композицию отдельных запросов
             var fetchGraph = this.entityManager.getEntityGraph("book-aggregate");
             var query = this.entityManager.createQuery("""
                                                         SELECT
@@ -71,34 +77,62 @@ public class JpaBookRepository implements BookRepository {
                                                         FROM
                                                             Book b
                                                         """, Book.class);
-            var books = query.getResultList();
+            result = query.getResultList();
             query.setHint("jakarta.persistence.fetchgraph", fetchGraph);
-            if (!books.isEmpty()) { // заставляем инициализировать вложенные коллекции
-                books.get(0).getAuthors().size();
-                books.get(0).getGenres().size();
-                books.get(0).getComments().size();
+            if (!result.isEmpty()) { // заставляем инициализировать вложенные коллекции
+                result.get(0).getAuthors().size();
+                result.get(0).getGenres().size();
+                result.get(0).getComments().size();
             }
-            return books;
         } catch (PersistenceException e) {
-            var msg = "Something went wrong with access to DB while finding genres";
-            log.error(msg, e);
-            throw new AppInfrastructureException(msg, e);
+            exceptionFactory.logAndThrow("Something went wrong with access to DB " +
+                                              "while finding genres", AppInfrastructureException.class, e);
         }
+        return result;
     }
 
     @Override
     public Book save(Book book) {
         if (book.getId() == 0) {
-            this.entityManager.persist(book);
+            synchronizeContext(book, entityManager::persist);
+            return book;
         } else {
-            this.entityManager.merge(book);
+            var managedEntity = getManagedStateFromDB(book);
+            synchronizeContext(managedEntity, entityManager::merge);  // подтягиваем пересобранные коллекции из БД
+            return managedEntity;
         }
-        return book;
+    }
+
+    private Book getManagedStateFromDB(Book detached) {
+        Book managedEntity = this.findById(detached.getId()).orElseThrow();
+        // переносим скаляры
+        managedEntity.setTitle(detached.getTitle());
+        managedEntity.setYearOfPublished(detached.getYearOfPublished());
+        // пересобираем авторов
+        var authors = managedEntity.getAuthors();
+        authors.clear();
+        authors.addAll(detached.getAuthors());
+        // пересобираем жанры
+        var genres = managedEntity.getGenres();
+        genres.clear();
+        genres.addAll(detached.getGenres());
+        // комменты не переносим - это отдельный сервис и отдельный репозиторий
+        return managedEntity;
+    }
+
+    private void synchronizeContext(Book book, Consumer<Book> func) {
+        try {
+            func.accept(book);
+        } catch (HibernateException e) {
+            exceptionFactory.logAndThrow("Something goes wrong during the " +
+                                              "updating the entity state from DB", AppInfrastructureException.class, e);
+        }
     }
 
     @Override
     public void deleteById(long id) {
-        var book = this.findById(id); // обработка исключения уже есть внутри
-        this.entityManager.remove(book);
+        var book = this.findById(id).orElseThrow(); // обработка исключения уже есть внутри
+        book.getComments().clear();
+        this.entityManager.remove(book); //комменты подчистит CascadeType.REMOVE
     }
 }

@@ -3,58 +3,84 @@ package ru.otus.hw.services;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.Validate;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.contracts.CommentRepository;
 import ru.otus.hw.services.contracts.CommentsService;
+import ru.otus.hw.utils.factories.exceptions.contracts.LoggedExceptionFactory;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CommentServiceImpl implements CommentsService {
 
-    private final CommentRepository commentRepository;
+    CommentRepository commentRepository;
+
+    LoggedExceptionFactory exceptionFactory;
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Comment> findById(long id) {
+        if (id < 1) {
+            exceptionFactory.logAndThrow("Trying to process impossible value as ID for find comment operation",
+                                              EntityValidationException.class);
+        }
         return this.commentRepository.findById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Comment> findAllByBookId(long bookId) {
+        if (bookId < 1) {
+            exceptionFactory.logAndThrow("Trying to process impossible value as book's ID " +
+                                              "for find all comments operation", EntityValidationException.class);
+        }
         return this.commentRepository.findAllByBookId(bookId);
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public Comment insert(long bookId, String commentText) {
-        Validate.isTrue(bookId > 0L, "Book's ID must be greater than <0>");
-        Validate.notBlank(commentText, "commentText must not be blank");
-        var comment = new Comment(0L, bookId, commentText);
+        if (bookId < 1L) {
+            exceptionFactory.logAndThrow("Book's ID must be greater than <0>", EntityValidationException.class);
+        }
+        if (StringUtils.isBlank(commentText)) {
+            exceptionFactory.logAndThrow("Comment's text must not be blank", EntityValidationException.class);
+        }
+        var comment = new Comment(bookId, commentText);
         return this.commentRepository.save(comment);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public Comment update(long id, String commentText) {
-        Validate.isTrue(id > 0L, "Comment's ID must be greater than <0>");
-        Validate.notBlank(commentText, "Comment's text must not be blank/empty");
-        var commentItem = this.commentRepository.findById(id);
-        Validate.isTrue(commentItem.isPresent(), "Comment with [id] = %d not present in DB".formatted(id));
-        var commentObj = commentItem.get();
-        commentObj.setText(commentText);
-        return this.commentRepository.save(commentObj);
+        if (id < 1L) {
+            exceptionFactory.logAndThrow("Comment's ID must be greater than <0>", EntityValidationException.class);
+        }
+        if (StringUtils.isBlank(commentText)) {
+            exceptionFactory.logAndThrow("Comment's text must not be blank", EntityValidationException.class);
+        }
+        var comment = this.commentRepository.findById(id).orElseThrow();
+        comment.setText(commentText);
+        return this.commentRepository.save(comment);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteById(long id) {
-        Validate.isTrue(id > 0L, "Comment's ID must be greater than <0>");
+        if (id < 1) {
+            exceptionFactory.logAndThrow("Trying to process impossible value as ID for delete comment operation",
+                                              EntityValidationException.class);
+        }
         this.commentRepository.deleteById(id);
     }
 }

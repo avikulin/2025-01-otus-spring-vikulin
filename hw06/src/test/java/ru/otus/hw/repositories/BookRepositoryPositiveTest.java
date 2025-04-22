@@ -1,199 +1,199 @@
 package ru.otus.hw.repositories;
 
 import base.ConfigurableByPropertiesTestBase;
+import data.BooksArgProvider;
+import data.TestDataProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import ru.otus.hw.config.AppConfig;
 import ru.otus.hw.converters.AuthorConverter;
 import ru.otus.hw.converters.BookConverter;
+import ru.otus.hw.converters.CommentConverter;
 import ru.otus.hw.converters.GenreConverter;
+import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.contracts.BookRepository;
-import ru.otus.hw.repositories.data.BooksArgProvider;
-import ru.otus.hw.repositories.data.TestDataProvider;
-import ru.otus.hw.utils.sql.SqlNormalizer;
+import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
 import ru.otus.hw.utils.validators.BookValidator;
+import utils.BookCheckerImpl;
+import utils.DeepCloneUtilsImpl;
+import utils.contracts.BookChecker;
+import utils.contracts.DeepCloneUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@JdbcTest()
+@DataJpaTest
 @DisplayName("Positive tests for the <Books> repository")
-@ContextConfiguration(classes = BookRepositoryPositiveTest.TestConfig.class)
+@Import({JpaBookRepository.class, JpaAuthorRepository.class, JpaGenreRepository.class,
+        BookConverter.class, AuthorConverter.class, GenreConverter.class, CommentConverter.class,
+        BookValidator.class, BookCheckerImpl.class, TestDataProvider.class, DeepCloneUtilsImpl.class,
+        LoggedExceptionFactoryImpl.class})
 class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     @Autowired
     BookRepository bookRepository;
 
-    @Configuration
-    @Import({JpaBookRepository.class, JpaAuthorRepository.class, JpaGenreRepository.class,
-             BookConverter.class, AuthorConverter.class, GenreConverter.class,
-             BookValidator.class, SqlNormalizer.class})
-    @EnableConfigurationProperties(AppConfig.class)
-    public static class TestConfig {}
+    @Autowired
+    TestEntityManager testEntityManager;
+
+    @Autowired
+    DeepCloneUtils cloneUtils;
+
+    @Autowired
+    BookChecker bookChecker;
+
+    @Autowired
+    TestDataProvider testDataProvider;
 
     @DisplayName("Getting the certain book from DB by ID tag")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void findById(String testName, Book expected) {
         var bookId = expected.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var book = bookOpt.get();
+        var book = bookRepository.findById(bookId)
+                                 .orElseThrow(()->new EntityNotFoundException(
+                                                            "Book with <id>=%d is not found in the DB"
+                                                                    .formatted(bookId)));
         assertEquals(expected, book);
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertEquals(actual, book);
     }
 
     @Test
     @DisplayName("Getting all the books from DB")
     void findAll() {
-        var expected = TestDataProvider.getTestBooks();
+        var expected = testDataProvider.getTestBooks();
         var books = bookRepository.findAll();
         assertIterableEquals(expected, books);
+        var actual = this.testEntityManager
+                         .getEntityManager()
+                            .createQuery("SELECT b FROM Book b", Book.class)
+                                .getResultList();
+        var booksIndex = books.stream().collect(Collectors.toMap(Book::getId, b->b));
+        var controlSum = actual.stream().filter(a->a.equals(booksIndex.get(a.getId()))).count();
+        assertEquals(actual.size(), controlSum);
     }
 
     @DisplayName("Updating the book's title")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void updateTitle(String testName, Book expected) {
-        // изменяем объект в БД
         expected.setTitle(expected.getTitle()+"-new");
         bookRepository.save(expected);
-
-        // ищем объект в БД до ИД
+        testEntityManager.flush(); // поможем ему определиться
         var bookId = expected.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var book = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(expected, book);
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertEquals(actual, expected);
     }
 
     @DisplayName("Updating the book's year of published")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void updateYearOfPublished(String testName, Book expected) {
-        // изменяем объект в БД
         expected.setYearOfPublished(expected.getYearOfPublished()+1);
         bookRepository.save(expected);
-
-        // ищем объект в БД до ИД
+        testEntityManager.flush(); // поможем ему определиться
         var bookId = expected.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var book = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(expected, book);
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertEquals(actual, expected);
     }
 
     @DisplayName("Adding the new author to the book's list of authors")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void addAuthor(String testName, Book expected) {
-        // изменяем объект в БД
-        var newAuthor = TestDataProvider.getTestAuthorById(3);
-        var newAuthorsList = new ArrayList<>(expected.getAuthors());
-        newAuthorsList.add(newAuthor);
-        var newBook = new Book(expected.getId(),
-                               expected.getTitle(),
-                               expected.getYearOfPublished(),
-                               newAuthorsList,
-                               expected.getGenres()
-        );
-        bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        expected.getAuthors().add(testDataProvider.getTestAuthorById(3));
+        bookRepository.save(expected);
+        testEntityManager.flush(); // поможем ему определиться
+        var bookId = expected.getId();
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertTrue(this.bookChecker.areEqual(actual, expected));
     }
 
     @DisplayName("Replacing the book's list of existing authors with the new author")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void replaceAuthors(String testName, Book expected) {
-        // изменяем объект в БД
-        var newAuthor = TestDataProvider.getTestAuthorById(3);
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                List.of(newAuthor),
-                expected.getGenres()
-        );
-        bookRepository.save(newBook);
+        // достаем книжку из БД
+        var bookId = expected.getId();
+        var book = this.testEntityManager.find(Book.class, bookId);
 
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
+        // заменяем существующих авторов на нового и сохраняем.
+        var newAuthor = testEntityManager.getEntityManager().getReference(Author.class, 3);
+        book.getAuthors().clear();
+        book.getAuthors().add(newAuthor);
+        this.bookRepository.save(book);
+        this.testEntityManager.flush(); // поможем сбросить контекст
 
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        // проверяем, что данные корректно перенесены из RAM в БД
+        this.testEntityManager.clear();
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertTrue(this.bookChecker.areEqual(actual, book));
+
+        // проверяем, что потеряшки зачищены
+        var actualAuthorsKeys = this.bookChecker.getAuthorsKeys(bookId);
+        var expectedAuthorsKeys = book.getAuthors()
+                                      .stream()
+                                      .map(Author::getId)
+                                      .sorted()
+                                      .map(String::valueOf)
+                                      .collect(Collectors.joining(","));
+        assertEquals(expectedAuthorsKeys, actualAuthorsKeys);
     }
 
-    @DisplayName("Adding the new genre to the book's list of existing authors")
+    @DisplayName("Adding the new genre to the book's list of existing genres")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void addGenre(String testName, Book expected) {
         // изменяем объект в БД
-        var newGenre = TestDataProvider.getTestGenreById(3);
-        var newGenresList = new ArrayList<>(expected.getGenres());
-        newGenresList.add(newGenre);
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                expected.getAuthors(),
-                newGenresList
-        );
+        var newBook = cloneUtils.cloneBook(expected);
+        newBook.getGenres().add(testDataProvider.getTestGenreById(3));
         bookRepository.save(newBook);
-
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
-
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        testEntityManager.flush(); // поможем ему определиться
+        var bookId = expected.getId();
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertEquals(actual, expected);
     }
 
-    @DisplayName("Replacing the book's list of existing authors with the new author")
+    @DisplayName("Replacing the book's list of existing genres with the new genre")
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(BooksArgProvider.class)
     void replaceGenres(String testName, Book expected) {
-        // изменяем объект в БД
-        var newGenre = TestDataProvider.getTestGenres().get(2);
-        var newBook = new Book(expected.getId(),
-                expected.getTitle(),
-                expected.getYearOfPublished(),
-                expected.getAuthors(),
-                List.of(newGenre)
-        );
-        bookRepository.save(newBook);
+        // достаем книжку из БД
+        var bookId = expected.getId();
+        var book = cloneUtils.cloneBook(this.testEntityManager.find(Book.class, bookId));
 
-        // ищем объект в БД до ИД
-        var bookId = newBook.getId();
-        var bookOpt = bookRepository.findById(bookId);
-        assertTrue(bookOpt.isPresent());
-        var newBookFromDB = bookOpt.get();
+        // заменяем существующие жанры на новой и сохраняем.
 
-        // проверяем на идентичность
-        assertEquals(newBook, newBookFromDB);
+        book.getGenres().add(testDataProvider.getTestGenres().get(2));
+        bookRepository.save(book);
+        this.testEntityManager.flush(); // поможем сбросить контекст
+
+        // проверяем, что данные корректно перенесены из RAM в БД
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertTrue(this.bookChecker.areEqual(actual, book));
+
+
+        // проверяем, что потеряшки зачищены
+        var actualGenresKeys = this.bookChecker.getGenresKeys(bookId);
+        var expectedGenresKeys = book.getGenres()
+                .stream()
+                .map(Genre::getId)
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        assertEquals(expectedGenresKeys, actualGenresKeys);
     }
 
     @DisplayName("Inserting the brand-new book into the DB")
@@ -201,24 +201,24 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     @ArgumentsSource(BooksArgProvider.class)
     void addNewBook(String testName, Book expected) {
         // создаем объект в БД
-        var newBook = new Book(0,
-                expected.getTitle() + "-new",
-                expected.getYearOfPublished() + 10,
-                expected.getAuthors(),
-                expected.getGenres()
-        );
-        var bookFromDB = bookRepository.save(newBook);
+        var newBook = cloneUtils.cloneBookAsNew(expected);
+        var tem = testEntityManager.getEntityManager();
+        var managedAuthors = newBook.getAuthors()
+                                    .stream()
+                                    .map(a->tem.getReference(Author.class, a.getId()))
+                                    .collect(Collectors.toSet());
+        newBook.setAuthors(managedAuthors);
+        var managedGenres = newBook.getGenres()
+                                    .stream()
+                                    .map(g->tem.getReference(Genre.class, g.getId()))
+                                    .collect(Collectors.toSet());
+        newBook.setGenres(managedGenres);
 
-        // проверяем, что вернувшийся из БД объект соответствует исходным параметрам
-        var newId = bookFromDB.getId();
-        newBook.setId(newId);
-        assertEquals(newBook, bookFromDB);
-
-        // ищем старый объект в БД до ИД и проверяем, что он не изменился
-        var bookOpt = bookRepository.findById(expected.getId());
-        assertTrue(bookOpt.isPresent());
-        var notUpdatedBook = bookOpt.get();
-        assertEquals(expected, notUpdatedBook);
+        newBook.setYearOfPublished(expected.getYearOfPublished() + 10);
+        bookRepository.save(newBook);
+        var bookId = expected.getId();
+        var actual = this.testEntityManager.find(Book.class, bookId);
+        assertTrue(this.bookChecker.areEqual(actual, expected));
     }
 
 
@@ -227,16 +227,30 @@ class BookRepositoryPositiveTest extends ConfigurableByPropertiesTestBase {
     @ArgumentsSource(BooksArgProvider.class)
     void deleteById(String testName, Book expected) {
         // удаляем конкретную книгу
-        var bookID = expected.getId();
-        bookRepository.deleteById(bookID);
+        var bookId = expected.getId();
+        bookRepository.deleteById(bookId);
 
         // проверяем, что удалилась только она
-        var expectedListOfBooks = TestDataProvider.getTestBooks()
+        var expectedListOfBooks = testDataProvider.getTestBooks()
                                              .stream()
-                                             .filter(book -> book.getId() != bookID)
+                                             .filter(book -> book.getId() != bookId)
+                                             .sorted(Comparator.comparingLong(Book::getId))
                                              .toList();
+        var actualListOfBooks = this.testEntityManager
+                .getEntityManager()
+                .createQuery("SELECT b FROM Book b ORDER BY b.id", Book.class)
+                .getResultList()
+                    .stream()
+                    .sorted(Comparator.comparingLong(Book::getId))
+                    .toList();
+        var expectedBooksIndex = expectedListOfBooks.stream().collect(Collectors.toMap(Book::getId, b->b));
+        var controlSample = actualListOfBooks.stream()
+                                  .filter(a->a.equals(expectedBooksIndex.get(a.getId())))
+                                  .sorted(Comparator.comparingLong(Book::getId))
+                                  .toList();
+        assertIterableEquals(expectedListOfBooks, controlSample);
 
-        var booksFromDB = bookRepository.findAll();
-        assertIterableEquals(expectedListOfBooks, booksFromDB);
+        // проверяем, что комменты подчистила политика CascadeType.REMOVE
+        assertEquals(0, this.bookChecker.getCommentsCount(bookId));
     }
 }
