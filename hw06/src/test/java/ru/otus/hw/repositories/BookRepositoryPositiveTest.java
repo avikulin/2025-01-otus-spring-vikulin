@@ -1,8 +1,8 @@
 package ru.otus.hw.repositories;
 
-import base.ConfigurableByPropertiesTestBase;
-import data.BooksArgProvider;
-import data.TestDataProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.data.BooksArgProvider;
+import ru.otus.hw.data.TestDataProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,10 +22,10 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.contracts.BookRepository;
 import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
 import ru.otus.hw.utils.validators.BookValidator;
-import utils.BookCheckerImpl;
-import utils.DeepCloneUtilsImpl;
-import utils.contracts.BookChecker;
-import utils.contracts.DeepCloneUtils;
+import ru.otus.hw.utils.BookCheckerImpl;
+import ru.otus.hw.utils.DeepCloneUtilsImpl;
+import ru.otus.hw.utils.contracts.BookChecker;
+import ru.otus.hw.utils.contracts.DeepCloneUtils;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;

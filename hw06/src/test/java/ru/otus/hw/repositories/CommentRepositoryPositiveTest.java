@@ -1,7 +1,7 @@
 package ru.otus.hw.repositories;
 
-import base.ConfigurableByPropertiesTestBase;
-import data.CommentsArgProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.data.CommentsArgProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,8 +15,8 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.contracts.CommentRepository;
 import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
-import utils.BookCheckerImpl;
-import utils.contracts.BookChecker;
+import ru.otus.hw.utils.BookCheckerImpl;
+import ru.otus.hw.utils.contracts.BookChecker;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

@@ -1,4 +1,4 @@
-package base;
+package ru.otus.hw.base;
 
 import org.springframework.test.context.TestPropertySource;
 

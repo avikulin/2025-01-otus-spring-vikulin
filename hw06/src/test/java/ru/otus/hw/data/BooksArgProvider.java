@@ -1,4 +1,4 @@
-package data;
+package ru.otus.hw.data;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
@@ -9,18 +9,19 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class CommentsArgProvider implements ArgumentsProvider {
+public class BooksArgProvider implements ArgumentsProvider {
     private final List<Book> books;
-    public CommentsArgProvider() {
+
+    public BooksArgProvider() {
         var provider = new TestDataProvider();
         this.books = provider.getTestBooks();
     }
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext){
-        var names = List.of("Book with no comments",
-                            "Book with 1 comment",
-                            "Book with 2 comments");
+        var names = List.of("Book with 1 author and 1 genre",
+                            "Book with 2 authors and 1 genre",
+                            "Book with 2 authors and 2 genres");
         return IntStream.range(0, this.books.size()).mapToObj(i -> Arguments.of(names.get(i), books.get(i)));
     }
 }

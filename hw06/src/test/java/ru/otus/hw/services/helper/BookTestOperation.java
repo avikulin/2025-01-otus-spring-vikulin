@@ -9,7 +9,7 @@ import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
 import ru.otus.hw.services.BookServiceImpl;
-import utils.contracts.BookChecker;
+import ru.otus.hw.utils.contracts.BookChecker;
 
 import java.util.stream.Collectors;
 

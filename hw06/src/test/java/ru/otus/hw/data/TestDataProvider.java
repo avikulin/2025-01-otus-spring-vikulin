@@ -1,4 +1,4 @@
-package data;
+package ru.otus.hw.data;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;

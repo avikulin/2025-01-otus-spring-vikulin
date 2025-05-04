@@ -99,5 +99,7 @@ public class Book implements CatalogEntity {
     @JoinColumn(name = "BOOK_ID")
     @BatchSize(size = 10) // по хорошему надо бы 100 - но для примера пойдет и так....
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @EqualsAndHashCode.Exclude  // канает только бизнес-ключ
+    @ToString.Exclude // чтобы не тащить из БД на каждом запросе
     Set<Comment> comments = new HashSet<>(); //инициализируем статически. В конструкторах этого параметра не будет.
 }

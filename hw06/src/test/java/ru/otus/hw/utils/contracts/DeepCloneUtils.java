@@ -1,4 +1,4 @@
-package utils.contracts;
+package ru.otus.hw.utils.contracts;
 
 import ru.otus.hw.models.Book;
 

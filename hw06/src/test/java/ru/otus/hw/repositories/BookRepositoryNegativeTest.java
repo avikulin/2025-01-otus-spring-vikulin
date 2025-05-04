@@ -1,7 +1,7 @@
 package ru.otus.hw.repositories;
 
-import base.ConfigurableByPropertiesTestBase;
-import data.BooksArgProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.data.BooksArgProvider;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,8 +22,8 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.contracts.BookRepository;
 import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
 import ru.otus.hw.utils.validators.BookValidator;
-import utils.DeepCloneUtilsImpl;
-import utils.contracts.DeepCloneUtils;
+import ru.otus.hw.utils.DeepCloneUtilsImpl;
+import ru.otus.hw.utils.contracts.DeepCloneUtils;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

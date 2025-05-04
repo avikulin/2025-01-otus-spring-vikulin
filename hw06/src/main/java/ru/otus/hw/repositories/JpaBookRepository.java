@@ -80,9 +80,11 @@ public class JpaBookRepository implements BookRepository {
             result = query.getResultList();
             query.setHint("jakarta.persistence.fetchgraph", fetchGraph);
             if (!result.isEmpty()) { // заставляем инициализировать вложенные коллекции
-                result.get(0).getAuthors().size();
-                result.get(0).getGenres().size();
-                result.get(0).getComments().size();
+                result.forEach(item->{
+                    item.getAuthors().size();
+                    item.getGenres().size();
+                    item.getComments().size();
+                });
             }
         } catch (PersistenceException e) {
             exceptionFactory.logAndThrow("Something went wrong with access to DB " +

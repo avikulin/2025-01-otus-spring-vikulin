@@ -1,11 +1,11 @@
-package utils;
+package ru.otus.hw.utils;
 
 import org.springframework.stereotype.Component;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.models.Genre;
-import utils.contracts.DeepCloneUtils;
+import ru.otus.hw.utils.contracts.DeepCloneUtils;
 
 @Component
 public class DeepCloneUtilsImpl implements DeepCloneUtils {

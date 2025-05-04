@@ -1,8 +1,8 @@
 package ru.otus.hw.services;
 
-import base.ConfigurableByPropertiesTestBase;
-import data.BooksArgProvider;
-import data.TestDataProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.data.BooksArgProvider;
+import ru.otus.hw.data.TestDataProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +25,7 @@ import ru.otus.hw.services.helper.BookTestOperation;
 import ru.otus.hw.services.helper.BookTestOperation.OpType;
 import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
 import ru.otus.hw.utils.validators.BookValidator;
-import utils.BookCheckerImpl;
+import ru.otus.hw.utils.BookCheckerImpl;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;

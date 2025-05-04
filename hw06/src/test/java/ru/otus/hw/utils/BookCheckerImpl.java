@@ -1,10 +1,10 @@
-package utils;
+package ru.otus.hw.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.otus.hw.models.Book;
-import utils.contracts.BookChecker;
+import ru.otus.hw.utils.contracts.BookChecker;
 
 import java.util.Map;
 

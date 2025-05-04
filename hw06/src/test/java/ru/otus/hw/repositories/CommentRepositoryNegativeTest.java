@@ -1,7 +1,7 @@
 package ru.otus.hw.repositories;
 
-import base.ConfigurableByPropertiesTestBase;
-import data.TestDataProvider;
+import ru.otus.hw.base.ConfigurableByPropertiesTestBase;
+import ru.otus.hw.data.TestDataProvider;
 import org.hibernate.HibernateException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +17,8 @@ import ru.otus.hw.exceptions.EntityValidationException;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.contracts.CommentRepository;
 import ru.otus.hw.utils.factories.exceptions.LoggedExceptionFactoryImpl;
-import utils.BookCheckerImpl;
-import utils.contracts.BookChecker;
+import ru.otus.hw.utils.BookCheckerImpl;
+import ru.otus.hw.utils.contracts.BookChecker;
 
 import java.util.Set;
 
