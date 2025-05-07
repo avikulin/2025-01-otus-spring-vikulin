@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:test-db
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    generate-ddl: true
+    show-sql: false
+
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: OTUS_HW_06_TEST
+        type: TRACE
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          order_inserts: true
+          order_updates: true
+        show_sql: false
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:/test-schema.sql
+      data-locations: classpath:/test-data.sql
+
+logging:
+  config: classpath:/logback-spring.xml
+  level:
+    org.hibernate.SQL: DEBUG
+    org:
+      hibernate:
+        event:
+          internal=DEBUG:
