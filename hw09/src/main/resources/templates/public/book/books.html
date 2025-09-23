@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <th:block th:replace="~{layout/layout :: layout('Books catalog', ~{::pageContent})}">
+        <th:block th:fragment="pageContent">
+            <h1 class="mt-4">Books catalog</h1>
+            <p class="mt-4">
+                Sample page to demonstrate capability of navigation through the books catalog.
+            </p>
+            <!--/*@thymesVar id="bookItem" type="ru.otus.hw.dto.entities.BookDto"*/-->
+            <div class="row row-cols-4 row-cols-md-4 g-5">
+                <div class="col"  th:each="bookItem : ${data}">
+                    <div class="card h-100">
+                        <img th:src="@{/assets/digital-book.jpeg}" style="padding: 20px;"
+                             src="../../../static/assets/digital-book.jpeg"
+                             class="card-img-top" alt="digital-book-logo">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${bookItem.getTitle()}">Card's title</h5>
+                            <span class="card-text">by&nbsp;</span>
+                            <span class="card-text" th:each="author, iter : ${bookItem.getAuthors()}"
+                               th:text="${author.getFullName()} + (${iter.last} ? '.' : ', ')">
+                                Author name
+                            </span>
+                            </p>
+                            <p class="card-text">Published at
+                                <span class="badge text-bg-secondary fs-6" th:text="${bookItem.getYearOfPublished()}">
+                                    2025
+                                </span>
+                            </p>
+                        </div>
+                        <div class="card-footer border-0">
+                            <p class="card-text">
+                                <span  th:each="genre, iter : ${bookItem.getGenres()}">
+                                    <small class="text-body-secondary"
+                                           th:text="'#'+${genre.getName()}">
+                                        #genre
+                                    </small>
+                                    <small class="text-body-secondary" th:text="${iter.last} ? '' : ' '">
+                                        ,
+                                    </small>
+                                </span>
+                            </p>
+                            <p/>
+                            <a href="#"  th:href="@{/books/__${bookItem.getId()}__}" class="btn btn-primary">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+    </th:block>
+</html>

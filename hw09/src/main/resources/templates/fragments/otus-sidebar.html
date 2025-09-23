@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <!-- Sidebar-->
+        <!--/*@thymesVar id="navigation_state" type="ru.otus.hw.dto.navigation.NavigationStateDto"*/-->
+        <div th:fragment="otus-sidebar" class="border-end bg-white" id="sidebar-wrapper" th:object="${navigation_state}">
+            <div class="sidebar-heading border-bottom bg-light">OTUS Systems</div>
+            <div class="list-group list-group-flush" th:each="leftNavItem: *{leftSideBarState}">
+                <a class="list-group-item list-group-item-action list-group-item-light p-3"
+                   href="#!"
+                   th:href="@{${leftNavItem.getUrl()}}">
+                    <span th:text = "${leftNavItem.getTitle()}">Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </body>
+</html>

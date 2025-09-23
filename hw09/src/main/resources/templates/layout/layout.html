@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <th:block th:fragment="layout(pageTitle, contentFragment)">
+        <th:block th:replace="~{fragments/otus-header :: otus-header(${pageTitle})}"></th:block>
+        <body>
+            <div class="d-flex" id="wrapper">
+                <!-- Sidebar-->
+                <div th:replace="~{fragments/otus-sidebar :: otus-sidebar}"></div>
+
+                <!-- Page content wrapper-->
+                <div id="page-content-wrapper">
+
+                    <!-- Top navigation-->
+                    <div th:replace="~{fragments/otus-breadcrumb-area :: otus-breadcrumb-area}"></div>
+
+                    <!-- Page content-->
+                    <div class="container-fluid">
+
+                        <!-- Main content section (required) -->
+                        <main th:replace="${contentFragment}"></main>
+                    </div>
+                </div>
+            </div>
+            <th:block th:replace="~{fragments/otus-footer :: otus-footer}"></th:block>
+        </body>
+    </th:block>
+</html>

@@ -1,0 +1,13 @@
+.tg-share-link{
+    margin-top: 0;
+}
+
+.book-authors-list {
+    display: flex;
+    flex-direction: row;
+}
+
+.book-genres-list {
+    display: flex;
+    flex-direction: row;
+}

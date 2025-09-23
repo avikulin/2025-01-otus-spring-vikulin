@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <th:block th:replace="~{layout/layout :: layout('Home', ~{::pageContent})}">
+        <th:block th:fragment="pageContent">
+            <h1 class="mt-4">Bookstore Application</h1>
+            <p class="mt-4">Sample <code>Spring Boot MVC</code> application for demonstration of
+                <code>#spring-boot-web</code> and <code>#thymeleaf</code> templating capabilities.
+            </p>
+            <p class="mt-4">
+                This application has the following functionality:
+            <ul>
+                <li>Catalog of the master-data: authors &amp; genres.</li>
+                <li>Catalog of the books with <code>drill-down</code> navigation.</li>
+                <li>Capability to commenting the books.</li>
+                <li>Capability to modifying book catalog.</li>
+            </ul>
+            </p>
+            <p class="mt-4">
+                <img src="../../static/img/otus.png" alt="logo" th:src="@{/img/otus.png}">
+            </p>
+        </th:block>
+    </th:block>
+</html>

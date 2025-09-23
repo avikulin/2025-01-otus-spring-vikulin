@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th = "http://www.thymeleaf.org">
+<!--/*@thymesVar id="data" type="ru.otus.hw.dto.entities.CommentDto"*/-->
+<th:block th:object="${data}">
+    <th:block th:replace="~{layout/layout_dialog :: dialog(~{::pageContent})}">
+        <th:block th:fragment="pageContent">
+            <form method="get" action="#" th:method="data == null ? 'POST' : 'PATCH'"
+                  th:action="@{/books/__${data.getBookId()}__/comments/__${data.getId()}__}}}" >
+            <div class="form-floating">
+                <input type="hidden" name="id" value="" th:value="*{getId()}">
+                <input type="hidden" name="bookId" value="" th:value="*{getBookId()}">
+                <textarea id="commentText"
+                          class="form-control"
+                          placeholder="Enter comment's text here"
+                          th:name="text" th:text="*{getText()}">
+                    Some cool comment
+                </textarea>
+                <label for="commentText">Comment's text</label>
+            </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-outline-danger"
+                                    th:if = "data != null"
+                                    th:onclick="deleteComment(*{getBookId()}),*{getId()}">
+                                Delete this comment
+                            </button>
+                        </div>
+                        <div class="col">
+                            <div class="btn-group" role="group" aria-label="Navigation actions" style="float: right;">
+                                <button type="submit" class="btn btn-outline-primary active">
+                                    Update book's info
+                                </button>
+                                <button type="button" class="btn btn-outline-primary"
+                                th:href="/books/__${data.getBookId()}__}">
+                                    Back to book's details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <script type="application/javascript">
+                async function deleteComment(bookId, commentId) {
+                    try {
+                        var commandURL = `/books/${bookId}/comments/${commentId}`
+                        const response = await fetch(commandURL, {
+                            method: 'DELETE',
+                        });
+
+                        if (!response.ok) {
+                            showErrorToast(`The comment haven't been deleted due to internal error.
+                                            See the logs on the server-side for details`);
+                        }
+                    } catch (error) {
+                        showErrorToast(`The delete request haven't been submitted due to browser error.
+                                        See the browser console, if you need more details about this problem`);
+                    }
+                }
+            </script>
+        </th:block>
+    </th:block>
+</th:block>
+</html>

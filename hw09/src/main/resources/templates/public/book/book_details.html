@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--/*@thymesVar id="data" type="ru.otus.hw.dto.entities.BookDto"*/-->
+<th:block th:object="${data}">
+    <th:block th:replace="~{layout/layout :: layout(*{getTitle()}, ~{::pageContent})}">
+        <th:block th:fragment="pageContent">
+            <div class="container-fluid">
+                <h1 class="mt-4" th:text="(*{getTitle()}) + ' (' + (*{getYearOfPublished()}) + ')'">
+                    Some cool book name (2025)
+                </h1>
+                <div class="row">
+                    <div class="col">
+                        <p class="mt-4">
+                            Some general book info is written below:
+                        </p>
+                    </div>
+                    <div class="col-sm-3 d-flex align-items-center justify-content-end">
+                        <div class="btn-group" role="group" aria-label="Navigation actions">
+                            <button type="button" class="btn btn-outline-primary active">
+                                Edit book's details
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="location.href='/books';">
+                                Back to the books list
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <img th:src="@{/assets/digital-book.jpeg}" style="padding: 40px"
+                             src="../../../static/assets/digital-book.jpeg"
+                             class="rounded-4 border border-secondary shadow" alt="digital-book-logo">
+                    </div>
+                    <div class="col">
+                        <table class="table table-hover">
+                            <tr>
+                                <td>Title</td>
+                                <td >
+
+                                    <p>
+                                        <span th:text="*{getTitle()}">Some book's title</span>
+                                    </p>
+                                    <p>
+                                        <span  th:each="genre, iter : *{getGenres()}">
+                                            <small class="badge text-body-secondary text-bg-secondary fs-7"
+                                                   th:text="'#'+${genre.getName()}">
+                                                #genre
+                                            </small>
+                                            <small class="text-body-secondary" th:text="${iter.last} ? '' : ' '">
+                                                &nbsp;
+                                            </small>
+                                        </span>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Year of published</td>
+                                <td th:text="*{getYearOfPublished()}"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Authors
+                                </td>
+                                <td>
+                                    <div th:each="author, iter : *{getAuthors()}" style="padding-top: 5px; padding-bottom: 5px;">
+                                        <span class="badge text-bg-secondary text-body-secondary rounded-circle"
+                                              th:text="${iter.count}">1</span>
+                                        <span th:text="${author.getFullName()}">John Doe</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col">
+                        <h1 class="m-4">Comments:</h1>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-center justify-content-end">
+                        <button type="button" class="btn btn-success text-nowrap" >
+                            Add a new comment
+                        </button>
+                    </div>
+                </div>
+                <div th:each="comment, iter : *{getComments()}" style="padding-top: 5px; padding-bottom: 5px;">
+                    <button type="button" class="btn btn-primary" th:text="${iter.count}">1</button>
+                    <span th:text="${comment.getText()}">John Doe</span>
+                </div>
+            </div>
+        </th:block>
+    </th:block>
+</th:block>
+</html>

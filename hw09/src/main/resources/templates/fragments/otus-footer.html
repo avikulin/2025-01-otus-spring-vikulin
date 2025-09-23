@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html th:fragment="otus-footer" lang="en" xmlns:th="http://www.thymeleaf.org">
+    <th:block th:fragment="otus-footer">
+        <div id="error_container" class="toast-container"></div>
+        <!-- Bootstrap core JS-->
+        <script src="../../static/frameworks/bootstrap/bootstrap.bundle.min.js" th:src="@{/frameworks/bootstrap/bootstrap.bundle.min.js}"></script>
+        <!-- Core theme JS-->
+        <script src="../../static/js/scripts.js" th:src="@{/js/scripts.js}"></script>
+
+        <!-- общая функция для показа ошибок в виде всплывающих сообщений-->
+        <script type="application/javascript">
+            function showErrorToast(message) {
+                const toastHtml = `
+                                        <div class="toast align-items-center text-white bg-danger border-0 show"
+                                             role="alert" aria-live="assertive" aria-atomic="true">
+                                            <div class="toast-header bg-danger">
+                                                <strong class="me-auto">Error</strong>
+                                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                                            </div>
+                                            <div class="toast-body">
+                                              ${message}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      `;
+
+                const toastContainer = document.getElementById('error_container');
+                toastContainer.innerHTML = toastHtml;
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    toastContainer.innerHTML = '';
+                }, 5000);
+            }
+        </script>
+    </th:block>
+</html>
