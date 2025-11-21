@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: hw15
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        default_schema: TAX_ACCOUNTING
+        connection:
+          url: ${spring.datasource.url}
+          autocommit: false
+          isolation: TRANSACTION_REPEATABLE_READ
+          pool_size: ${spring.datasource.hikari.maximum-pool-size}
+          driver_class: ${spring.datasource.driver-class-name}
+          username: ${spring.datasource.username}
+          password: ${spring.datasource.password}
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: admin
+    password:
+    hikari:
+      auto-commit: false
+      maximum-pool-size: 1
+      minimum-idle: 1
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+
+  shell:
+    script:
+      enabled: true
+    interactive:
+      enabled: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:/data.sql
+      schema-locations: classpath:/schema.sql
